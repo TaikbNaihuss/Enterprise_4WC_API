@@ -1,0 +1,2 @@
+Server Admin User: katibAdmin
+Pass: assignmentKatib4WC (case-sensitive)

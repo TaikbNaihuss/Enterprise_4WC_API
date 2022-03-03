@@ -1,0 +1,12 @@
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\bin\Debug\net5.0\Assignment4WC.Models.deps.json
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\bin\Debug\net5.0\Assignment4WC.Models.dll
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\bin\Debug\net5.0\ref\Assignment4WC.Models.dll
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\bin\Debug\net5.0\Assignment4WC.Models.pdb
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\obj\Debug\net5.0\Assignment4WC.Models.csproj.AssemblyReference.cache
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\obj\Debug\net5.0\Assignment4WC.Models.GeneratedMSBuildEditorConfig.editorconfig
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\obj\Debug\net5.0\Assignment4WC.Models.AssemblyInfoInputs.cache
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\obj\Debug\net5.0\Assignment4WC.Models.AssemblyInfo.cs
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\obj\Debug\net5.0\Assignment4WC.Models.csproj.CoreCompileInputs.cache
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\obj\Debug\net5.0\Assignment4WC.Models.dll
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\obj\Debug\net5.0\ref\Assignment4WC.Models.dll
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignement4WC.Models\obj\Debug\net5.0\Assignment4WC.Models.pdb
