@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq.Expressions;
 using System.Net;
+using Assignment4WC.Context.Models;
 using Assignment4WC.Models;
+using LocationDto = Assignment4WC.API.Controllers.Models.LocationDto;
 
 namespace Assignment4WC.API.Controllers
 {
@@ -27,8 +29,19 @@ namespace Assignment4WC.API.Controllers
         }
 
         [HttpPost]
+        [Route(FourWeekChallengeEndpoint.InitialiseGameRoute)]
+        public IActionResult InitialiseGame()
+        {
+            var result = _manager.GetCategoriesAndQuestionCount();
+
+            return result.IsSuccess ? 
+                result.GetValueAndLinks().ToActionResult(this) :
+                result.GetErrorAndLinks().ToActionResult(this);
+        }
+
+        [HttpPost]
         [Route(FourWeekChallengeEndpoint.StartRoute)]
-        public IActionResult Start(int appId, [FromBody] InitialDetailsDto initialDetails)
+        public IActionResult StartGame(int appId, [FromBody] InitialDetailsDto initialDetails)
         {
             if (appId < 0) return BadRequest($"'{nameof(appId)}' cannot be less than 0.");
             var (category, numOfQuestions, username) = initialDetails;
@@ -37,9 +50,9 @@ namespace Assignment4WC.API.Controllers
 
             return result.IsSuccess
                 ? Created(HttpContext.Request.Path, new LinkReferencer()
-                    .AddLink(FourWeekChallengeEndpoint.InterpolatedStartRoute(appId.ToString()))
+                    .AddLink(FourWeekChallengeEndpoint.StartRouteWith(appId.ToString()))
                     .GetLinks()) 
-                : result.AddLink(FourWeekChallengeEndpoint.InterpolatedStartRoute(appId.ToString()))
+                : result.AddLink(FourWeekChallengeEndpoint.StartRouteWith(appId.ToString()))
                     .GetErrorAndLinks()
                     .ToActionResult(this);
         }
@@ -108,7 +121,7 @@ namespace Assignment4WC.API.Controllers
                     new QuestionAndAnswersDto(
                         questionData.Question,
                         QuestionsExtensions.GetAnswersFromQuestionData(questionData)))
-                .AddLink(FourWeekChallengeEndpoint.InterpolatedSubmitAnswerRoute(username))
+                .AddLink("submit",FourWeekChallengeEndpoint.SubmitAnswerRouteWith(username))
                 .GetValueAndLinks()
                 .ToActionResult(this);
         }
@@ -119,64 +132,84 @@ namespace Assignment4WC.API.Controllers
         {
             if (string.IsNullOrWhiteSpace(answerContainer.Answer)) 
                 return new Result(new ErrorMessage(HttpStatusCode.BadRequest, "No answer was provided."))
-                    .AddLink(FourWeekChallengeEndpoint.InterpolatedSubmitAnswerRoute(username))
+                    .AddLink(FourWeekChallengeEndpoint.SubmitAnswerRouteWith(username))
                     .GetErrorAndLinks()
                     .ToActionResult(this);
 
             var result = _manager.SubmitAnswer(username, answerContainer.Answer);
 
             return result.IsSuccess ?
-                    result.GetValueAndLinks().ToActionResult(this) :
+                    result.GetValueAndLinks().ToActionResult(this):
                     result.GetErrorAndLinks().ToActionResult(this);
         }
 
-        [HttpPost]
-        [Route(FourWeekChallengeEndpoint.GetNextQuestionRoute)]
-        public IActionResult GetNextQuestion(string username, string answer)
-        {
-            return Ok();
-        }
-
         [HttpPut]
-        [Route(FourWeekChallengeEndpoint.GetUserLocationRoute)]
-        public IActionResult GetUserLocation(string username /*Also need longitude and latitude here*/)
+        [Route(FourWeekChallengeEndpoint.SetUserLocationRoute)]
+        public IActionResult SetUserLocation(string username, LocationDto location)
         {
-            return NoContent();
+            var result = _manager.UpdateUserLocation(username, location.Latitude, location.Longitude);
+
+            return result.IsSuccess ?
+                NoContent() :
+                result.GetErrorAndLinks().ToActionResult(this);
         }
 
         [HttpGet]
         [Route(FourWeekChallengeEndpoint.GetHintRoute)]
         public IActionResult GetHint(string username)
         {
-            return Ok();
+            var result = _manager.GetHintFromQuestion(username);
+
+            return result.IsSuccess ?
+                result.GetValueAndLinks().ToActionResult(this):
+                result.GetErrorAndLinks().ToActionResult(this);
         }
 
         [HttpGet]
         [Route(FourWeekChallengeEndpoint.GetLocationHintRoute)]
         public IActionResult GetLocationHint(string username)
         {
-            return Ok();
+            var result = _manager.GetLocationHintFromQuestion(username);
+           
+            return result.IsSuccess ?
+                result.GetValueAndLinks().ToActionResult(this) :
+                result.GetErrorAndLinks().ToActionResult(this);
         }
 
         [HttpPut]
         [Route(FourWeekChallengeEndpoint.EndGameRoute)]
         public IActionResult EndGame(string username)
         {
-            return Ok();
+            var result = _manager.EndGame(username);
+
+            return result.IsSuccess ?
+                Ok(new LinkReferencer()
+                        .AddLink("initialise", FourWeekChallengeEndpoint.InitialiseGameRoute)
+                        .AddLink("score", FourWeekChallengeEndpoint.GetUserScoreRouteWith(username))
+                        .AddLink("highScores", FourWeekChallengeEndpoint.GetHighScoresRoute)
+                        .GetLinks()):
+                result.GetErrorAndLinks().ToActionResult(this);
         }
 
         [HttpGet]
         [Route(FourWeekChallengeEndpoint.GetUserScoreRoute)]
         public IActionResult GetUserScore(string username)
         {
-            return Ok();
+            var result = _manager.GetUserScore(username);
+            return result.IsSuccess ?
+                result.GetValueAndLinks().ToActionResult(this) :
+                result.GetErrorAndLinks().ToActionResult(this);
         }
 
         [HttpGet]
         [Route(FourWeekChallengeEndpoint.GetHighScoresRoute)]
         public IActionResult GetHighScores()
         {
-            return Ok();
+            var result = _manager.GetHighScores();
+            
+            return result.IsSuccess ?
+                result.GetValueAndLinks().ToActionResult(this) :
+                result.GetErrorAndLinks().ToActionResult(this);
         }
     }
 }

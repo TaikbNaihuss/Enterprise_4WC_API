@@ -1,5 +1,6 @@
 ﻿using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 using System;
+using System.Linq.Expressions;
 using System.Net;
 
 namespace Assignment4WC.Models.ResultType
@@ -21,6 +22,10 @@ namespace Assignment4WC.Models.ResultType
             IsSuccess = true;
         }
 
+        public Result()
+        {
+        }
+
         public Result(ErrorMessage error)
         {
             if (error == null) throw new ArgumentNullException(nameof(error));
@@ -39,6 +44,17 @@ namespace Assignment4WC.Models.ResultType
             return ResultValue.Value;
         }
 
+        public bool HasValue()
+        {
+            return ResultValue != null;
+        }
+
+        public new Result<T> Ok()
+        {
+            IsSuccess = true;
+            return this;
+        }
+
         public new Result<T> AddLink(string content)
         {
             if (IsSuccess) ResultValue.AddLink(content);
@@ -54,7 +70,6 @@ namespace Assignment4WC.Models.ResultType
             
             return this;
         }
-
 
         public ValueLink<T> GetValueAndLinks() => new(ResultValue.Value, ResultValue.GetLinks(), IsSuccess, ResultValue.StatusCode);
 

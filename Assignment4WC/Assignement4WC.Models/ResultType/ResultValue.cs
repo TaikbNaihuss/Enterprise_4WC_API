@@ -1,5 +1,7 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 
@@ -12,14 +14,14 @@ namespace Assignment4WC.Models.ResultType
 
         private readonly ILinkReferencer _linkRef;
 
-        public ResultValue(T value)
+        public ResultValue([DisallowNull] T value)
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
             StatusCode = HttpStatusCode.OK;
             _linkRef = new LinkReferencer();
         }
 
-        public ResultValue(HttpStatusCode statusCode, T value)
+        public ResultValue(HttpStatusCode statusCode, [DisallowNull] T value)
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
             StatusCode = statusCode;
@@ -41,6 +43,6 @@ namespace Assignment4WC.Models.ResultType
         public Dictionary<string, string> GetLinks() => _linkRef.GetLinks();
 
         public static implicit operator T(ResultValue<T> resultVal) => resultVal.Value;
-        public static explicit operator ResultValue<T>(T val) => new(val);
+        public static explicit operator ResultValue<T>(T val) => new(val!);
     }
 }

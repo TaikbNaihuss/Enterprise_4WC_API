@@ -8,7 +8,7 @@ namespace Assignment4WC.Context
     public class AssignmentContext : DbContext
     {
         public DbSet<Questions> Questions { get; set; }
-        public DbSet<ComplexQuestions> Complex { get; set; }
+        public DbSet<ComplexQuestions> ComplexQuestions { get; set; }
         public DbSet<Answers> Answers { get; set; }
         public DbSet<Categories> Categories { get; set; }
         public DbSet<Locations> Locations { get; set; }
@@ -26,8 +26,8 @@ namespace Assignment4WC.Context
                 builder.HasKey(answers => answers.QuestionId);
 
                 builder.HasDiscriminator()
-                    .HasValue<Questions>("Simple")
-                    .HasValue<ComplexQuestions>("Complex");
+                    .HasValue<Questions>(QuestionComplexity.Simple.ToString())
+                    .HasValue<ComplexQuestions>(QuestionComplexity.Complex.ToString());
 
                 builder.HasMany(questions => questions.Answers)
                     .WithOne(answers => answers.Question);
@@ -42,9 +42,14 @@ namespace Assignment4WC.Context
             });
 
 
-            modelBuilder.Entity<ComplexQuestions>()
-                .HasOne(questions => questions.Location)
-                .WithOne(locations => locations.Question);
+            modelBuilder.Entity<ComplexQuestions>(builder =>
+            {
+                builder.HasOne(questions => questions.Location)
+                    .WithOne(locations => locations.Question);
+
+                builder.HasBaseType<Questions>();
+            });
+               
 
             modelBuilder.Entity<Answers>(builder =>
             {

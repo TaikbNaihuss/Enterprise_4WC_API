@@ -9,6 +9,7 @@ namespace Assignment4WC.Context.Models
         public QuestionType QuestionType { get; set; }
         public string Question { get; set; }
         public int CategoryId { get; set; }
+        public string Discriminator { get; set; }
         public string CorrectAnswer { get; set; }
 
         public List<Answers> Answers { get; set; }
