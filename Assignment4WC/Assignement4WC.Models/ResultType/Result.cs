@@ -7,7 +7,7 @@ namespace Assignment4WC.Models.ResultType
 {
     public class Result<T> : Result, IUnwrap<T>, IValueLinkReferencer<T, Result<T>>
     {
-        public ResultValue<T> ResultValue { get; }
+        private ResultValue<T> ResultValue { get; }
 
         public Result(T value) 
         {
@@ -33,7 +33,7 @@ namespace Assignment4WC.Models.ResultType
             IsSuccess = false;
         }
 
-        private Result(ResultErrorMessage error)
+        public Result(ResultErrorMessage error)
         {
             Error = error ?? throw new ArgumentNullException(nameof(error));
             IsSuccess = false;
@@ -41,7 +41,7 @@ namespace Assignment4WC.Models.ResultType
 
         public T Unwrap()
         {
-            return ResultValue.Value;
+            return ResultValue != null ? ResultValue.Value : default;
         }
 
         public bool HasValue()
@@ -72,13 +72,11 @@ namespace Assignment4WC.Models.ResultType
         }
 
         public ValueLink<T> GetValueAndLinks() => new(ResultValue.Value, ResultValue.GetLinks(), IsSuccess, ResultValue.StatusCode);
-
-        public Result<S> ToResult<S>() => new(Error);
     }
 
     public class Result : IErrorLinkReferencerProxy<Result>
     {
-        public ResultErrorMessage Error { get; protected set; }
+        protected ResultErrorMessage Error { get; set; }
         public bool IsSuccess { get; protected set; }
 
         public Result() { }
@@ -107,6 +105,13 @@ namespace Assignment4WC.Models.ResultType
             Error.AddLink(key, content);
             return this;
         }
+
+        public ErrorMessage GetError()
+        {
+            return Error;
+        }
+
+        public Result<S> ToResult<S>() => new(Error);
 
         //Primarily using Error.ToActionResult() for this, might want to remove later.
         public ValueLink<string> GetErrorAndLinks() => new(Error.Message, Error.GetLinks(), IsSuccess, Error.StatusCode);

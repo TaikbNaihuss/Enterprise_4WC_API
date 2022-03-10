@@ -3,6 +3,7 @@ using Assignment4WC.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Assignment4WC.API.Extensions
 {
@@ -10,7 +11,6 @@ namespace Assignment4WC.API.Extensions
     {   
         public static Dictionary<string, string> GetAnswersFromQuestionData(Questions questionData)
         {
-
             switch (questionData.QuestionType)
             {
                 case QuestionType.MultipleChoice:

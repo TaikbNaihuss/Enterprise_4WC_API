@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Numerics;
 
 namespace Assignment4WC.Logic
 {
@@ -30,9 +29,7 @@ namespace Assignment4WC.Logic
                         .Select(categoryString => (CategoryType)Enum.Parse(typeof(CategoryType), categoryString))
                         .Select(category => new CategoryWithQuestionCount(
                             category.ToString(),
-                            _context.Questions.Include(questions => questions.Category)
-                                .AsSplitQuery()
-                                .Count(questions => questions.Category.CategoryName == category)))
+                            GetQuestionCountInIncrements(category, 5)))
                         .ToList())
                 .AddLink(FourWeekChallengeEndpoint.StartRoute);
 
@@ -62,7 +59,7 @@ namespace Assignment4WC.Logic
 
             _context.SaveChanges();
 
-            return new Result(null);
+            return new Result().Ok();
         }
 
         public Result<string> GetHintFromQuestion(string username)
@@ -83,7 +80,7 @@ namespace Assignment4WC.Logic
                     $"The username '{username}' already exists, try another."));
 
             var result = _questionRandomiser.GetQuestionsWithOrder(numOfQuestions, category);
-            if (!result.IsSuccess) return new Result(result.Error);
+            if (!result.IsSuccess) return new Result(result.GetError());
 
             _context.Members.Add(new Members
             {
@@ -99,17 +96,14 @@ namespace Assignment4WC.Logic
 
         public Result<Questions> GetCurrentQuestionData(string username)
         {
-            var member = GetMemberOrNull(username);
-            if (member == null)
-                return GetMemberDoesNotExistError<Questions>(username);
-
-            var currentQuestionIdResult = GetCurrentQuestionId(member);
+            var currentQuestionIdResult = GetMembersCurrentQuestionId(username);
             if (!currentQuestionIdResult.IsSuccess)
                 return currentQuestionIdResult.ToResult<Questions>();
 
             var currentQuestionId = currentQuestionIdResult.Unwrap();
 
             var question = GetQuestion(currentQuestionId);
+           
             if (question == null)
                 return new Result<Questions>(
                         new ErrorMessage(
@@ -121,11 +115,11 @@ namespace Assignment4WC.Logic
                     ? new Result<Questions>(question)
                     : new Result<Questions>(question)
                         .AddLink("hint", FourWeekChallengeEndpoint.GetHintRouteWith(username))
+                        .AddLink("setLocation", FourWeekChallengeEndpoint.SetUserLocationRouteWith(username))
                         .AddLink("locationHint", FourWeekChallengeEndpoint.GetLocationHintRouteWith(username));
 
             return result;
         }
-
 
         public Result<string> GetLocationHintFromQuestion(string username)
         {
@@ -144,19 +138,23 @@ namespace Assignment4WC.Logic
             if (member == null)
                 return GetMemberDoesNotExistError(username);
 
-            return HasGameEnded(member)
-                ? new Result().Ok()
-                : new Result(new ErrorMessage(HttpStatusCode.BadRequest,
-                    $"Game has not ended for user with name '{username}.'"));
+            return HasGameEnded(member) ? 
+                new Result().Ok() : 
+                new Result(new ErrorMessage(HttpStatusCode.BadRequest,
+                    $"Game has not ended for user with name '{username}.'"))
+                    .AddLink(FourWeekChallengeEndpoint.GetQuestionRoute);
 
         }
 
-        public Result<int> GetUserScore(string username)
+        public Result<int> GetUserScore(string username)    
         {
             var member = GetMemberOrNull(username);
             return member != null ? 
                 new Result<int>(member.UserScore) 
-                : GetMemberDoesNotExistError<int>(username);
+                    .AddLink("category", FourWeekChallengeEndpoint.GetCategories)
+                    .AddLink("highScore", FourWeekChallengeEndpoint.GetHighScoresRoute)
+                : GetMemberDoesNotExistError(username)
+                    .ToResult<int>();
         }
 
         public Result<List<UserScore>> GetHighScores()
@@ -164,61 +162,85 @@ namespace Assignment4WC.Logic
             if (!_context.Members.Any())
                 return new Result<List<UserScore>>(
                         new ErrorMessage(HttpStatusCode.BadRequest, "No members currently exist."))
-                    .AddLink("initialise", FourWeekChallengeEndpoint.InitialiseGameRoute);
+                    .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
             
             return new Result<List<UserScore>>(_context.Members.OrderBy(members => members.UserScore)
                 .Select(members => new UserScore(members.Username, members.UserScore))
                 .ToList())
-                .AddLink("initialise", FourWeekChallengeEndpoint.InitialiseGameRoute);
+                .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
         }
 
         public Result<bool> SubmitAnswer(string username, string answer)
         {
             var questionDataResult = GetCurrentQuestionData(username);
-
             if (!questionDataResult.IsSuccess)
                 return questionDataResult.ToResult<bool>();
 
             var member = GetMemberOrNull(username)!;
-            var questionData = questionDataResult.Unwrap();
 
-            if (questionData.CorrectAnswer == answer)
+            var questionData = questionDataResult.Unwrap();
+            
+            var complexQuestionData = questionData.Discriminator == QuestionComplexity.Simple.ToString() ?
+                    null :
+                    GetComplexQuestion(questionData.QuestionId);
+
+            var skippedQuestion = string.Equals(answer, "PASS", StringComparison.CurrentCultureIgnoreCase);
+
+            var isSameLocation = true;
+
+            if (questionData.CorrectAnswer == answer || skippedQuestion)
             {
-                if (!string.Equals(answer, "PASS", StringComparison.CurrentCultureIgnoreCase)) 
-                    AddToUserScore(member);
+                if (!skippedQuestion)
+                {
+                    if (complexQuestionData != null)
+                    {
+                        var sameLocationsResult = AreLocationsTheSame(complexQuestionData, member);
+                        if (!sameLocationsResult.IsSuccess)
+                            return sameLocationsResult;
+
+                        isSameLocation = sameLocationsResult.Unwrap();
+                    }
+
+                    if (isSameLocation)
+                        AddToUserScore(member);
+                }
+
                 member.CurrentQuestionNumber++;
                 _context.SaveChanges();
             }
 
-            var result = new Result<bool>(questionData.CorrectAnswer == answer);
+            var result = new Result<bool>(questionData.CorrectAnswer == answer && isSameLocation);
 
-            return HasGameEnded(member) ?
+            return !HasGameEnded(member) ?
                 result.AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username)) :
                 result.AddLink(FourWeekChallengeEndpoint.EndGameRouteWith(username));
         }
 
-        private Result<ComplexQuestions> GetCurrentComplexQuestionData(string username)
+        private Result<bool> AreLocationsTheSame(ComplexQuestions complexQuestionData, Members member)
         {
-            var member = GetMemberOrNull(username);
-            if (member == null)
-                return GetMemberDoesNotExistError<ComplexQuestions>(username);
+            var complexQuestionLocation = complexQuestionData.Location;
+            var memberLocation = _context.Locations.FirstOrDefault(locations => locations.LocationId == member.LocationId);
 
-            var currentQuestionIdResult = GetCurrentQuestionId(member);
-            if (!currentQuestionIdResult.IsSuccess)
-                return currentQuestionIdResult.ToResult<ComplexQuestions>();
+            if (memberLocation == null)
+                return new Result<bool>(
+                        new ErrorMessage(HttpStatusCode.NotFound,
+                            $"Member with username '{member.Username}' does not have a location set."))
+                    .AddLink(FourWeekChallengeEndpoint.SetUserLocationRouteWith(member.Username));
 
-            var currentQuestionId = currentQuestionIdResult.Unwrap();
+            return new Result<bool>(complexQuestionLocation.Latitude == memberLocation.Latitude &&
+                                    complexQuestionLocation.Longitude == memberLocation.Longitude);
+        }
 
-            var complexQuestion = GetComplexQuestion(currentQuestionId);
+        private IEnumerable<int> GetQuestionCountInIncrements(CategoryType category, int increments)
+        {
+            var questionCount = _context.Questions.Include(questions => questions.Category)
+                .AsSplitQuery()
+                .Count(questions => questions.Category.CategoryName == category);
 
-            var questionExists = _context.Questions.Any(questions => questions.QuestionId == currentQuestionId);
-
-            return complexQuestion != null ?
-                new Result<ComplexQuestions>(complexQuestion) :
-                questionExists ?
-                    new Result<ComplexQuestions>().Ok() :
-                    new Result<ComplexQuestions>(new ErrorMessage(HttpStatusCode.NotFound, $"Question with ID '{currentQuestionId}' does not exist in database."))
-                        .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username));
+            for (var i = 0; i < questionCount / increments; i++)
+            {
+                yield return increments * (i + 1);
+            }
         }
 
         private Questions? GetQuestion(int currentQuestionId)
@@ -237,6 +259,43 @@ namespace Assignment4WC.Logic
                 .Include(questions => questions.Answers)
                 .AsSplitQuery()
                 .FirstOrDefault(questions => questions.QuestionId == currentQuestionId);
+        }
+
+        private Result<ComplexQuestions> GetCurrentComplexQuestionData(string username)
+        {
+            var currentQuestionIdResult = GetMembersCurrentQuestionId(username);
+            if (!currentQuestionIdResult.IsSuccess)
+                return currentQuestionIdResult.ToResult<ComplexQuestions>();
+
+            var currentQuestionId = currentQuestionIdResult.Unwrap();
+
+            var complexQuestion = GetComplexQuestion(currentQuestionId);
+
+            var questionExists = _context.Questions.Any(questions => questions.QuestionId == currentQuestionId);
+
+            return complexQuestion != null ?
+                new Result<ComplexQuestions>(complexQuestion) :
+                questionExists ?
+                    new Result<ComplexQuestions>(new ErrorMessage(HttpStatusCode.BadRequest,
+                            $"This question is not a complex question. Cannot provide additional details for this question."))
+                        .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username)) :
+                    new Result<ComplexQuestions>(new ErrorMessage(HttpStatusCode.NotFound,
+                            $"Question with ID '{currentQuestionId}' does not exist in database."))
+                        .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username));
+        }
+
+        private Result<int> GetMembersCurrentQuestionId(string username)
+        {
+            var member = GetMemberOrNull(username);
+            if (member == null)
+                return GetMemberDoesNotExistError(username)
+                    .ToResult<int>();
+
+            var currentQuestionIdResult = GetCurrentQuestionId(member);
+
+            return currentQuestionIdResult.IsSuccess ?
+                currentQuestionIdResult :
+                currentQuestionIdResult.ToResult<int>();
         }
 
         private Members? GetMemberOrNull(string username) =>
@@ -273,18 +332,16 @@ namespace Assignment4WC.Logic
                 return new Result<int>(new ErrorMessage(HttpStatusCode.InternalServerError,
                     $"Index '{nameof(member.CurrentQuestionNumber)}' was outside the range for the number of questionIds the member has."));
 
-            return new Result<int>(int.Parse(questionIds[currentQuestionIndex]));
+            return questionIds.Length != currentQuestionIndex ? 
+                new Result<int>(int.Parse(questionIds[currentQuestionIndex])) :
+                new Result<int>(new ErrorMessage(HttpStatusCode.NotFound, $"Game has ended for member with name '{member.Username}'."))
+                    .AddLink(FourWeekChallengeEndpoint.EndGameRouteWith(member.Username));
         }
-
-        private static Result<T> GetMemberDoesNotExistError<T>(string username) =>
-            new Result<T>(new ErrorMessage(HttpStatusCode.NotFound,
-                    $"Member with username '{username}' does not exist."))
-                .AddLink(FourWeekChallengeEndpoint.InitialiseGameRoute);
 
         private static Result GetMemberDoesNotExistError(string username) =>
             new Result(new ErrorMessage(HttpStatusCode.NotFound,
                     $"Member with username '{username}' does not exist."))
-                .AddLink(FourWeekChallengeEndpoint.InitialiseGameRoute);
+                .AddLink(FourWeekChallengeEndpoint.GetCategories);
 
         private static bool HasGameEnded(Members member) =>
             member.QuestionIds.Split(",").Length == member.CurrentQuestionNumber;

@@ -1,7 +1,5 @@
-﻿using System;
+﻿using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 using System.Collections.Generic;
-using System.Net;
-using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 
 namespace Assignment4WC.Models.ResultType
 {
@@ -14,7 +12,6 @@ namespace Assignment4WC.Models.ResultType
         {
             _linkRef = new LinkReferencer();
         }
-
 
         public ResultErrorMessage AddLink(string content)
         {

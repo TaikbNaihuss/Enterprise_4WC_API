@@ -1,4 +1,6 @@
-﻿namespace Assignment4WC.Models
+﻿using System.Collections.Generic;
+
+namespace Assignment4WC.Models
 {
-    public record CategoryWithQuestionCount(string Category, int QuestionCount);
+    public record CategoryWithQuestionCount(string Category, IEnumerable<int> QuestionCount);
 }

@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Assignment4WC.Models.ControllerEndpoints
+﻿namespace Assignment4WC.Models.ControllerEndpoints
 {
     public static class FourWeekChallengeEndpoint
     {
-        public const string InitialiseGameRoute = "initialise";
+        public const string GetCategories = "categories";
         public const string StartRoute = "start/{appId}";
         public const string GetQuestionRoute = "question/{username}";
-        public const string SubmitAnswerRoute = "/question/{username}/submit";
+        public const string SubmitAnswerRoute = "question/{username}/submit";
         public const string SetUserLocationRoute = "location/{username}";
         public const string GetHintRoute = "question/{username}/hint";
         public const string GetLocationHintRoute = "question/location/{username}/hint";

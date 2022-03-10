@@ -1,16 +1,17 @@
 ﻿using Assignment4WC.API.Controllers.Models;
 using Assignment4WC.API.Extensions;
 using Assignment4WC.Context;
+using Assignment4WC.Context.Models;
 using Assignment4WC.Logic;
+using Assignment4WC.Models;
 using Assignment4WC.Models.ControllerEndpoints;
 using Assignment4WC.Models.ResultType;
 using Assignment4WC.Models.ResultType.LinkReferencerObjects;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq.Expressions;
+using System.Linq;
 using System.Net;
-using Assignment4WC.Context.Models;
-using Assignment4WC.Models;
 using LocationDto = Assignment4WC.API.Controllers.Models.LocationDto;
 
 namespace Assignment4WC.API.Controllers
@@ -29,15 +30,15 @@ namespace Assignment4WC.API.Controllers
         }
 
         [HttpPost]
-        [Route(FourWeekChallengeEndpoint.InitialiseGameRoute)]
-        public IActionResult InitialiseGame()
+        [Route(FourWeekChallengeEndpoint.GetCategories)]
+        public IActionResult GetCategories()
         {
             var result = _manager.GetCategoriesAndQuestionCount();
 
             return result.IsSuccess ? 
                 result.GetValueAndLinks().ToActionResult(this) :
                 result.GetErrorAndLinks().ToActionResult(this);
-        }
+        }       
 
         [HttpPost]
         [Route(FourWeekChallengeEndpoint.StartRoute)]
@@ -50,7 +51,7 @@ namespace Assignment4WC.API.Controllers
 
             return result.IsSuccess
                 ? Created(HttpContext.Request.Path, new LinkReferencer()
-                    .AddLink(FourWeekChallengeEndpoint.StartRouteWith(appId.ToString()))
+                    .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username))
                     .GetLinks()) 
                 : result.AddLink(FourWeekChallengeEndpoint.StartRouteWith(appId.ToString()))
                     .GetErrorAndLinks()
@@ -58,51 +59,37 @@ namespace Assignment4WC.API.Controllers
         }
 
 
-        //[HttpPost]
-        //[Route(FourWeekChallengeEndpoint."setQuestions")]
-        //public IActionResult SetQuestion(string question, string ans1, string ans2, string ans3, string ans4, string ansCorrect)
-        //{
-        //    _context.Questions.Add(new Questions()
-        //    {
-        //        Question = question,
-        //        CorrectAnswer = ansCorrect,
-        //        CategoryId = _context.Categories.First(categories => categories.CategoryName == CategoryType.Baby.ToString()).CategoryId,
-        //    });
+        [HttpPost]
+        [Route("setQuestions")]
+        public IActionResult SetQuestion(string question, string answer, string hint)
+        {
+            var random = new Random(3);
 
-        //    _context.SaveChanges();
+            var location = new Locations()
+            {
+                Latitude = Convert.ToDecimal(random.NextDouble() * 80),
+                Longitude = Convert.ToDecimal(random.NextDouble() * 80)
+            };
 
-        //    _context.Answers.Add(new Answers()
-        //    {
-        //        QuestionId = _context.Questions.First(questions => questions.Question == question).QuestionId,
-        //        Answer = ans1,
-        //        Order = 'A'
-        //    });
+            _context.Locations.Add(location);
 
-        //    _context.Answers.Add(new Answers()
-        //    {
-        //        QuestionId = _context.Questions.First(questions => questions.Question == question).QuestionId,
-        //        Answer = ans2,
-        //        Order = 'B'
-        //    });
+            _context.SaveChanges();
 
-        //    _context.Answers.Add(new Answers()
-        //    {
-        //        QuestionId = _context.Questions.First(questions => questions.Question == question).QuestionId,
-        //        Answer = ans3,
-        //        Order = 'C'
-        //    });
+            _context.Questions.Add(new ComplexQuestions()
+            {
+                Question = question,
+                CorrectAnswer = answer,
+                CategoryId = _context.Categories.First(categories => categories.CategoryName == CategoryType.Animal).CategoryId,
+                Hint = hint,
+                LocationHint = hint + "Location",
+                LocationId = _context.Locations.First(locations => locations == location).LocationId,
+                QuestionType = QuestionType.Text
+            });
 
-        //    _context.Answers.Add(new Answers()
-        //    {
-        //        QuestionId = _context.Questions.First(questions => questions.Question == question).QuestionId,
-        //        Answer = ans4,
-        //        Order = 'D'
-        //    });
+            _context.SaveChanges();
 
-        //    _context.SaveChanges();
-
-        //    return Ok();
-        //}
+            return Ok();
+        }
 
 
         [HttpGet]
@@ -117,13 +104,25 @@ namespace Assignment4WC.API.Controllers
 
             var questionData = questionDataResult.Unwrap();
             
-            return new Result<QuestionAndAnswersDto>(
-                    new QuestionAndAnswersDto(
-                        questionData.Question,
-                        QuestionsExtensions.GetAnswersFromQuestionData(questionData)))
-                .AddLink("submit",FourWeekChallengeEndpoint.SubmitAnswerRouteWith(username))
-                .GetValueAndLinks()
-                .ToActionResult(this);
+            return questionData != null ?
+                questionData.QuestionType == QuestionType.MultipleChoice ?
+                    AppendValueLinkData(new Result<QuestionAndAnswersDto>(
+                        new QuestionAndAnswersDto(
+                            questionData.Question,
+                            QuestionsExtensions.GetAnswersFromQuestionData(questionData)))) :
+                    AppendValueLinkData(new Result<QuestionDto>(
+                        new QuestionDto(
+                            questionData.Question))) :
+                Ok(new LinkReferencer()
+                    .AddLink(FourWeekChallengeEndpoint.EndGameRouteWith(username))
+                    .GetLinks());
+
+            IActionResult AppendValueLinkData<T>(Result<T> result)
+            {
+                return result.AddLink("submit", FourWeekChallengeEndpoint.SubmitAnswerRouteWith(username))
+                    .GetValueAndLinks()
+                    .ToActionResult(this);
+            }
         }
 
         [HttpPost]
@@ -184,7 +183,7 @@ namespace Assignment4WC.API.Controllers
 
             return result.IsSuccess ?
                 Ok(new LinkReferencer()
-                        .AddLink("initialise", FourWeekChallengeEndpoint.InitialiseGameRoute)
+                        .AddLink("categories", FourWeekChallengeEndpoint.GetCategories)
                         .AddLink("score", FourWeekChallengeEndpoint.GetUserScoreRouteWith(username))
                         .AddLink("highScores", FourWeekChallengeEndpoint.GetHighScoresRoute)
                         .GetLinks()):

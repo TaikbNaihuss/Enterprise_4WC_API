@@ -14,7 +14,7 @@ namespace Assignment4WC.Models.ResultType
 
         private readonly ILinkReferencer _linkRef;
 
-        public ResultValue([DisallowNull] T value)
+        public ResultValue(T value)
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
             StatusCode = HttpStatusCode.OK;
