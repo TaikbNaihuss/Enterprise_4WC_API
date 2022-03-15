@@ -10,6 +10,7 @@ using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using LocationDto = Assignment4WC.API.Controllers.Models.LocationDto;
@@ -31,14 +32,10 @@ namespace Assignment4WC.API.Controllers
 
         [HttpPost]
         [Route(FourWeekChallengeEndpoint.GetCategories)]
-        public IActionResult GetCategories()
-        {
-            var result = _manager.GetCategoriesAndQuestionCount();
-
-            return result.IsSuccess ? 
-                result.GetValueAndLinks().ToActionResult(this) :
-                result.GetErrorAndLinks().ToActionResult(this);
-        }       
+        public IActionResult GetCategories() => 
+            _manager.GetCategoriesAndQuestionCount()
+                .GetValueAndLinks()
+                .ToActionResult(this);
 
         [HttpPost]
         [Route(FourWeekChallengeEndpoint.StartRoute)]
@@ -57,40 +54,6 @@ namespace Assignment4WC.API.Controllers
                     .GetErrorAndLinks()
                     .ToActionResult(this);
         }
-
-
-        [HttpPost]
-        [Route("setQuestions")]
-        public IActionResult SetQuestion(string question, string answer, string hint)
-        {
-            var random = new Random(3);
-
-            var location = new Locations()
-            {
-                Latitude = Convert.ToDecimal(random.NextDouble() * 80),
-                Longitude = Convert.ToDecimal(random.NextDouble() * 80)
-            };
-
-            _context.Locations.Add(location);
-
-            _context.SaveChanges();
-
-            _context.Questions.Add(new ComplexQuestions()
-            {
-                Question = question,
-                CorrectAnswer = answer,
-                CategoryId = _context.Categories.First(categories => categories.CategoryName == CategoryType.Animal).CategoryId,
-                Hint = hint,
-                LocationHint = hint + "Location",
-                LocationId = _context.Locations.First(locations => locations == location).LocationId,
-                QuestionType = QuestionType.Text
-            });
-
-            _context.SaveChanges();
-
-            return Ok();
-        }
-
 
         [HttpGet]
         [Route(FourWeekChallengeEndpoint.GetQuestionRoute)]
@@ -120,6 +83,7 @@ namespace Assignment4WC.API.Controllers
             IActionResult AppendValueLinkData<T>(Result<T> result)
             {
                 return result.AddLink("submit", FourWeekChallengeEndpoint.SubmitAnswerRouteWith(username))
+                    .WithLinks(questionDataResult.GetValueAndLinks())
                     .GetValueAndLinks()
                     .ToActionResult(this);
             }
@@ -129,12 +93,6 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.SubmitAnswerRoute)]
         public IActionResult SubmitAnswer(string username, [FromBody] AnswerDto answerContainer)
         {
-            if (string.IsNullOrWhiteSpace(answerContainer.Answer)) 
-                return new Result(new ErrorMessage(HttpStatusCode.BadRequest, "No answer was provided."))
-                    .AddLink(FourWeekChallengeEndpoint.SubmitAnswerRouteWith(username))
-                    .GetErrorAndLinks()
-                    .ToActionResult(this);
-
             var result = _manager.SubmitAnswer(username, answerContainer.Answer);
 
             return result.IsSuccess ?

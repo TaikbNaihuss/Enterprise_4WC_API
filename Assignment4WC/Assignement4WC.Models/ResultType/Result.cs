@@ -1,7 +1,6 @@
 ﻿using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 using System;
 using System.Linq.Expressions;
-using System.Net;
 
 namespace Assignment4WC.Models.ResultType
 {
@@ -11,19 +10,8 @@ namespace Assignment4WC.Models.ResultType
 
         public Result(T value) 
         {
-            ResultValue = (ResultValue<T>) value ?? throw new ArgumentNullException(nameof(value));
+            ResultValue = (ResultValue<T>) value;
             IsSuccess = true;
-        }
-
-        public Result(T value, HttpStatusCode statusCode = HttpStatusCode.OK)
-        {
-            if (value == null) throw new ArgumentNullException(nameof(value));
-            ResultValue = new ResultValue<T>(statusCode, value);
-            IsSuccess = true;
-        }
-
-        public Result()
-        {
         }
 
         public Result(ErrorMessage error)
@@ -71,13 +59,23 @@ namespace Assignment4WC.Models.ResultType
             return this;
         }
 
+        public Result<T> WithLinks<S>(ValueLink<S> links)
+        {
+            foreach (var (key, value) in links.Links)
+            {
+                ResultValue.AddLink(key, value);
+            }
+
+            return this;
+        }
+
         public ValueLink<T> GetValueAndLinks() => new(ResultValue.Value, ResultValue.GetLinks(), IsSuccess, ResultValue.StatusCode);
     }
 
     public class Result : IErrorLinkReferencerProxy<Result>
     {
         protected ResultErrorMessage Error { get; set; }
-        public bool IsSuccess { get; protected set; }
+        public bool IsSuccess { get; set; }
 
         public Result() { }
 

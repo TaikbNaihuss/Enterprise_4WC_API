@@ -3,7 +3,6 @@
     public enum CategoryType
     {
         Animal,
-        MyType,
         Baby
     }
 }

@@ -48,6 +48,7 @@ namespace Assignment4WC.Logic
             if (member.LocationId == 0)
             {
                 _context.Locations.Add(newLocation);
+                _context.SaveChanges();
                 member.LocationId = _context.Locations.First(locations => locations == newLocation).LocationId;
             }
             else
@@ -67,6 +68,9 @@ namespace Assignment4WC.Logic
             var questionDataResult = GetCurrentComplexQuestionData(username);
             if (!questionDataResult.IsSuccess)
                 return questionDataResult.ToResult<string>();
+
+            GetMemberOrNull(username)!.HintAsked = true;
+            _context.SaveChanges();
 
             return questionDataResult.HasValue()
                 ? new Result<string>(questionDataResult.Unwrap().Hint)
@@ -127,6 +131,9 @@ namespace Assignment4WC.Logic
             if (!questionDataResult.IsSuccess)
                 return questionDataResult.ToResult<string>();
 
+            GetMemberOrNull(username)!.LocationHintAsked = true;
+            _context.SaveChanges();
+
             return questionDataResult.HasValue()
                 ? new Result<string>(questionDataResult.Unwrap().LocationHint)
                 : new Result<string>(string.Empty);
@@ -164,7 +171,7 @@ namespace Assignment4WC.Logic
                         new ErrorMessage(HttpStatusCode.BadRequest, "No members currently exist."))
                     .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
             
-            return new Result<List<UserScore>>(_context.Members.OrderBy(members => members.UserScore)
+            return new Result<List<UserScore>>(_context.Members.OrderByDescending(members => members.UserScore)
                 .Select(members => new UserScore(members.Username, members.UserScore))
                 .ToList())
                 .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
@@ -202,10 +209,14 @@ namespace Assignment4WC.Logic
                     }
 
                     if (isSameLocation)
+                    {
                         AddToUserScore(member);
+                        member.CurrentQuestionNumber++;
+                    }
                 }
+                else
+                    member.CurrentQuestionNumber++;
 
-                member.CurrentQuestionNumber++;
                 _context.SaveChanges();
             }
 
@@ -257,6 +268,7 @@ namespace Assignment4WC.Logic
             return _context.ComplexQuestions
                 .Include(questions => questions.Category)
                 .Include(questions => questions.Answers)
+                .Include(questions => questions.Location)
                 .AsSplitQuery()
                 .FirstOrDefault(questions => questions.QuestionId == currentQuestionId);
         }

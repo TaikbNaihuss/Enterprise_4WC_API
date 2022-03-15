@@ -1,7 +1,6 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 
@@ -16,15 +15,8 @@ namespace Assignment4WC.Models.ResultType
 
         public ResultValue(T value)
         {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
+            Value = value;
             StatusCode = HttpStatusCode.OK;
-            _linkRef = new LinkReferencer();
-        }
-
-        public ResultValue(HttpStatusCode statusCode, [DisallowNull] T value)
-        {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
-            StatusCode = statusCode;
             _linkRef = new LinkReferencer();
         }
 

@@ -9,7 +9,6 @@ namespace Assignment4WC.API.Controllers.Validators
         public InitialDetailsValidator()
         {
             RuleFor(details => details.Username)
-                .NotNull()
                 .NotEmpty();
 
             RuleFor(details => details.Category)

@@ -2,7 +2,9 @@ E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignm
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\bin\Debug\net5.0\Assignment4WC.Logic.dll
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\bin\Debug\net5.0\ref\Assignment4WC.Logic.dll
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\bin\Debug\net5.0\Assignment4WC.Logic.pdb
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\bin\Debug\net5.0\Assignment4WC.Context.dll
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\bin\Debug\net5.0\Assignment4WC.Models.dll
+E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\bin\Debug\net5.0\Assignment4WC.Context.pdb
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\bin\Debug\net5.0\Assignment4WC.Models.pdb
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\obj\Debug\net5.0\Assignment4WC.Logic.csproj.AssemblyReference.cache
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\obj\Debug\net5.0\Assignment4WC.Logic.GeneratedMSBuildEditorConfig.editorconfig
@@ -13,5 +15,3 @@ E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignm
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\obj\Debug\net5.0\Assignment4WC.Logic.dll
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\obj\Debug\net5.0\ref\Assignment4WC.Logic.dll
 E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\obj\Debug\net5.0\Assignment4WC.Logic.pdb
-E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\bin\Debug\net5.0\Assignment4WC.Context.dll
-E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Logic\bin\Debug\net5.0\Assignment4WC.Context.pdb

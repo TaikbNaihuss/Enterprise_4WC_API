@@ -1,2 +1,6 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=ab76fe99_002D6517_002D4914_002Dabbe_002D9ee0e863bd79/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GivenThereAreCategoriesWithQuestions_ThenReturnCategoriesWithQuestionCountInIncrements" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Project Location="E:\Desktop\Third Year Material\CO3409 Enterprise Application Development\Assignment\Assignment4WC\Assignment4WC.Tests" Presentation="&amp;lt;Assignment4WC.Tests&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Randomiser/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
