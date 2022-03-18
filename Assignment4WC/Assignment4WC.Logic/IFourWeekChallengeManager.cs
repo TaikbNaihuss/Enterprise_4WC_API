@@ -2,6 +2,7 @@
 using Assignment4WC.Context.Models;
 using Assignment4WC.Models;
 using Assignment4WC.Models.ResultType;
+using Microsoft.AspNetCore.Http;
 
 namespace Assignment4WC.Logic
 {
@@ -17,5 +18,6 @@ namespace Assignment4WC.Logic
         Result EndGame(string username);
         Result<int> GetUserScore(string username);
         Result<List<UserScore>> GetHighScores();
+        Result<bool> SubmitPictureAnswer(string username, IFormFile picture);
     }
 }

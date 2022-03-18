@@ -1,19 +1,17 @@
 ﻿using Assignment4WC.API.Controllers.Models;
 using Assignment4WC.API.Extensions;
 using Assignment4WC.Context;
-using Assignment4WC.Context.Models;
 using Assignment4WC.Logic;
 using Assignment4WC.Models;
 using Assignment4WC.Models.ControllerEndpoints;
 using Assignment4WC.Models.ResultType;
 using Assignment4WC.Models.ResultType.LinkReferencerObjects;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
-using LocationDto = Assignment4WC.API.Controllers.Models.LocationDto;
+using Microsoft.AspNetCore.Http;
 
 namespace Assignment4WC.API.Controllers
 {
@@ -22,12 +20,10 @@ namespace Assignment4WC.API.Controllers
     public class FourWeekChallengeController : Controller
     {
         private readonly IFourWeekChallengeManager _manager;
-        private readonly AssignmentContext _context;
 
-        public FourWeekChallengeController(IFourWeekChallengeManager manager, AssignmentContext context)
+        public FourWeekChallengeController(IFourWeekChallengeManager manager)
         {
             _manager = manager ?? throw new ArgumentNullException(nameof(manager));
-            _context = context;
         }
 
         [HttpPost]
@@ -72,17 +68,21 @@ namespace Assignment4WC.API.Controllers
                     AppendValueLinkData(new Result<QuestionAndAnswersDto>(
                         new QuestionAndAnswersDto(
                             questionData.Question,
-                            QuestionsExtensions.GetAnswersFromQuestionData(questionData)))) :
+                            QuestionsExtensions.GetAnswersFromQuestionData(questionData))),
+                        questionData.QuestionType) :
                     AppendValueLinkData(new Result<QuestionDto>(
                         new QuestionDto(
-                            questionData.Question))) :
+                            questionData.Question)), 
+                        questionData.QuestionType) :
                 Ok(new LinkReferencer()
                     .AddLink(FourWeekChallengeEndpoint.EndGameRouteWith(username))
                     .GetLinks());
 
-            IActionResult AppendValueLinkData<T>(Result<T> result)
+            IActionResult AppendValueLinkData<T>(Result<T> result, QuestionType questionType)
             {
-                return result.AddLink("submit", FourWeekChallengeEndpoint.SubmitAnswerRouteWith(username))
+                return (questionType != QuestionType.Picture ?
+                    result.AddLink("submit", FourWeekChallengeEndpoint.SubmitAnswerRouteWith(username)) :
+                    result.AddLink("submit", FourWeekChallengeEndpoint.SubmitPictureAnswerRouteWith(username)))
                     .WithLinks(questionDataResult.GetValueAndLinks())
                     .GetValueAndLinks()
                     .ToActionResult(this);
@@ -98,6 +98,17 @@ namespace Assignment4WC.API.Controllers
             return result.IsSuccess ?
                     result.GetValueAndLinks().ToActionResult(this):
                     result.GetErrorAndLinks().ToActionResult(this);
+        }
+
+        [HttpPost]
+        [Route(FourWeekChallengeEndpoint.SubmitPictureAnswerRoute)]
+        public IActionResult SubmitPictureAnswer(string username, IFormFile picture)
+        {
+            var result = _manager.SubmitPictureAnswer(username, picture);
+
+            return result.IsSuccess ?
+                result.GetValueAndLinks().ToActionResult(this) :
+                result.GetErrorAndLinks().ToActionResult(this);
         }
 
         [HttpPut]

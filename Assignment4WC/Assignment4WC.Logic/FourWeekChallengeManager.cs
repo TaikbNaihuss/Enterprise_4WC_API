@@ -1,25 +1,26 @@
 ﻿#nullable enable
-using Assignment4WC.Context;
 using Assignment4WC.Context.Models;
+using Assignment4WC.Context.Repositories;
 using Assignment4WC.Models;
 using Assignment4WC.Models.ControllerEndpoints;
 using Assignment4WC.Models.ResultType;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using Microsoft.AspNetCore.Http;
 
 namespace Assignment4WC.Logic
 {
     public class FourWeekChallengeManager : IFourWeekChallengeManager
     {
-        private readonly AssignmentContext _context;
+        private readonly IGlobalRepository _repository;
         private readonly IQuestionRandomiser _questionRandomiser;
 
-        public FourWeekChallengeManager(AssignmentContext context, IQuestionRandomiser questionRandomiser)
+        public FourWeekChallengeManager(IGlobalRepository repository, IQuestionRandomiser questionRandomiser)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _questionRandomiser = questionRandomiser ?? throw new ArgumentNullException(nameof(questionRandomiser));
         }
 
@@ -35,7 +36,7 @@ namespace Assignment4WC.Logic
 
         public Result UpdateUserLocation(string username, decimal latitude, decimal longitude)
         {
-            var member = GetMemberOrNull(username);
+            var member = _repository.Members.GetMemberOrNull(username);
             if (member == null)
                 return GetMemberDoesNotExistError(username);
 
@@ -47,18 +48,19 @@ namespace Assignment4WC.Logic
 
             if (member.LocationId == 0)
             {
-                _context.Locations.Add(newLocation);
-                _context.SaveChanges();
-                member.LocationId = _context.Locations.First(locations => locations == newLocation).LocationId;
+                _repository.Locations.Add(newLocation);
+                _repository.SaveChanges();
+                var location = _repository.Locations.GetLocationByLocation(newLocation);
+                member.LocationId = location.LocationId;
             }
             else
             {
-                var userLocation = _context.Locations.First(locations => locations.LocationId == member.LocationId);
+                var userLocation = _repository.Locations.GetLocationByLocationId(member.LocationId);
                 userLocation.Latitude = latitude;
                 userLocation.Longitude = longitude;
             }
 
-            _context.SaveChanges();
+            _repository.SaveChanges();
 
             return new Result().Ok();
         }
@@ -69,31 +71,31 @@ namespace Assignment4WC.Logic
             if (!questionDataResult.IsSuccess)
                 return questionDataResult.ToResult<string>();
 
-            GetMemberOrNull(username)!.HintAsked = true;
-            _context.SaveChanges();
+            _repository.Members.GetMemberOrNull(username)!.HintAsked = true;
+            _repository.SaveChanges();
 
-            return questionDataResult.HasValue()
-                ? new Result<string>(questionDataResult.Unwrap().Hint)
-                : new Result<string>(string.Empty);
+            return new Result<string>(questionDataResult.Unwrap().Hint);
         }
 
         public Result AddNewPlayer(int appId, string username, CategoryType category, int numOfQuestions)
         {
-            if (DoesUsernameExist(username))
+            if (_repository.Members.DoesUsernameExist(username))
                 return new Result(new ErrorMessage(HttpStatusCode.BadRequest,
-                    $"The username '{username}' already exists, try another."));
+                    $"The username '{username}' already exists, try another."))
+                    .AddLink(FourWeekChallengeEndpoint.StartRouteWith(appId.ToString()));
 
             var result = _questionRandomiser.GetQuestionsWithOrder(numOfQuestions, category);
-            if (!result.IsSuccess) return new Result(result.GetError());
+            if (!result.IsSuccess) return new Result(result.GetError())
+                .AddLink(FourWeekChallengeEndpoint.StartRouteWith(appId.ToString()));
 
-            _context.Members.Add(new Members
+            _repository.Members.Add(new Members
             {
                 AppId = appId,
                 Username = username,
                 QuestionIds = result.Unwrap(),
             });
 
-            _context.SaveChanges();
+            _repository.SaveChanges();
 
             return new Result().Ok();
         }
@@ -106,7 +108,7 @@ namespace Assignment4WC.Logic
 
             var currentQuestionId = currentQuestionIdResult.Unwrap();
 
-            var question = GetQuestion(currentQuestionId);
+            var question = _repository.Questions.GetQuestionOrNull(currentQuestionId);
            
             if (question == null)
                 return new Result<Questions>(
@@ -131,8 +133,8 @@ namespace Assignment4WC.Logic
             if (!questionDataResult.IsSuccess)
                 return questionDataResult.ToResult<string>();
 
-            GetMemberOrNull(username)!.LocationHintAsked = true;
-            _context.SaveChanges();
+            _repository.Members.GetMemberOrNull(username)!.LocationHintAsked = true;
+            _repository.SaveChanges();
 
             return questionDataResult.HasValue()
                 ? new Result<string>(questionDataResult.Unwrap().LocationHint)
@@ -141,7 +143,7 @@ namespace Assignment4WC.Logic
 
         public Result EndGame(string username)
         {
-            var member = GetMemberOrNull(username);
+            var member = _repository.Members.GetMemberOrNull(username);
             if (member == null)
                 return GetMemberDoesNotExistError(username);
 
@@ -149,13 +151,13 @@ namespace Assignment4WC.Logic
                 new Result().Ok() : 
                 new Result(new ErrorMessage(HttpStatusCode.BadRequest,
                     $"Game has not ended for user with name '{username}.'"))
-                    .AddLink(FourWeekChallengeEndpoint.GetQuestionRoute);
+                    .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username));
 
         }
 
         public Result<int> GetUserScore(string username)    
         {
-            var member = GetMemberOrNull(username);
+            var member = _repository.Members.GetMemberOrNull(username);
             return member != null ? 
                 new Result<int>(member.UserScore) 
                     .AddLink("category", FourWeekChallengeEndpoint.GetCategories)
@@ -166,15 +168,34 @@ namespace Assignment4WC.Logic
 
         public Result<List<UserScore>> GetHighScores()
         {
-            if (!_context.Members.Any())
+            if (!_repository.Members.Any())
                 return new Result<List<UserScore>>(
                         new ErrorMessage(HttpStatusCode.BadRequest, "No members currently exist."))
                     .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
             
-            return new Result<List<UserScore>>(_context.Members.OrderByDescending(members => members.UserScore)
-                .Select(members => new UserScore(members.Username, members.UserScore))
-                .ToList())
+            return new Result<List<UserScore>>(_repository.Members.GetUserScoreInDescendingOrder())
                 .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
+        }
+
+        public Result<bool> SubmitPictureAnswer(string username, IFormFile picture)
+        {
+            var extension = picture.FileName.Split(".").ToList().Last();
+            if (extension is not ("jpg" or "png" or "jpeg"))
+                return new Result<bool>(new ErrorMessage(HttpStatusCode.UnprocessableEntity,
+                            $"File types are limited to '.jpg','.jpeg' and '.png'. The uploaded file type was .{extension}"))
+                        .AddLink(FourWeekChallengeEndpoint.SubmitPictureAnswerRouteWith(username));
+
+            var pictureBase64 = "";
+
+            if (picture.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                picture.CopyTo(ms);
+                var fileBytes = ms.ToArray();
+                pictureBase64 = Convert.ToBase64String(fileBytes);
+            }
+
+            return SubmitAnswer(username, pictureBase64);
         }
 
         public Result<bool> SubmitAnswer(string username, string answer)
@@ -183,13 +204,13 @@ namespace Assignment4WC.Logic
             if (!questionDataResult.IsSuccess)
                 return questionDataResult.ToResult<bool>();
 
-            var member = GetMemberOrNull(username)!;
+            var member = _repository.Members.GetMemberOrNull(username)!;
 
             var questionData = questionDataResult.Unwrap();
             
             var complexQuestionData = questionData.Discriminator == QuestionComplexity.Simple.ToString() ?
                     null :
-                    GetComplexQuestion(questionData.QuestionId);
+                    _repository.ComplexQuestions.GetComplexQuestion(questionData.QuestionId);
 
             var skippedQuestion = string.Equals(answer, "PASS", StringComparison.CurrentCultureIgnoreCase);
 
@@ -217,10 +238,10 @@ namespace Assignment4WC.Logic
                 else
                     member.CurrentQuestionNumber++;
 
-                _context.SaveChanges();
+                _repository.SaveChanges();
             }
 
-            var result = new Result<bool>(questionData.CorrectAnswer == answer && isSameLocation);
+            var result = new Result<bool>((questionData.CorrectAnswer == answer && isSameLocation) || skippedQuestion);
 
             return !HasGameEnded(member) ?
                 result.AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username)) :
@@ -230,7 +251,7 @@ namespace Assignment4WC.Logic
         private Result<bool> AreLocationsTheSame(ComplexQuestions complexQuestionData, Members member)
         {
             var complexQuestionLocation = complexQuestionData.Location;
-            var memberLocation = _context.Locations.FirstOrDefault(locations => locations.LocationId == member.LocationId);
+            var memberLocation = _repository.Locations.GetLocationByLocationIdOrNull(member.LocationId);
 
             if (memberLocation == null)
                 return new Result<bool>(
@@ -244,33 +265,12 @@ namespace Assignment4WC.Logic
 
         private IEnumerable<int> GetQuestionCountInIncrements(CategoryType category, int increments)
         {
-            var questionCount = _context.Questions.Include(questions => questions.Category)
-                .AsSplitQuery()
-                .Count(questions => questions.Category.CategoryName == category);
+            var questionCount = _repository.Questions.CountQuestionsFromCategory(category);
 
             for (var i = 0; i < questionCount / increments; i++)
             {
                 yield return increments * (i + 1);
             }
-        }
-
-        private Questions? GetQuestion(int currentQuestionId)
-        {
-            return _context.Questions
-                .Include(questions => questions.Category)
-                .Include(questions => questions.Answers)
-                .AsSplitQuery()
-                .FirstOrDefault(questions => questions.QuestionId == currentQuestionId);
-        }
-
-        private ComplexQuestions? GetComplexQuestion(int currentQuestionId)
-        {
-            return _context.ComplexQuestions
-                .Include(questions => questions.Category)
-                .Include(questions => questions.Answers)
-                .Include(questions => questions.Location)
-                .AsSplitQuery()
-                .FirstOrDefault(questions => questions.QuestionId == currentQuestionId);
         }
 
         private Result<ComplexQuestions> GetCurrentComplexQuestionData(string username)
@@ -281,9 +281,9 @@ namespace Assignment4WC.Logic
 
             var currentQuestionId = currentQuestionIdResult.Unwrap();
 
-            var complexQuestion = GetComplexQuestion(currentQuestionId);
+            var complexQuestion = _repository.ComplexQuestions.GetComplexQuestion(currentQuestionId);
 
-            var questionExists = _context.Questions.Any(questions => questions.QuestionId == currentQuestionId);
+            var questionExists = _repository.Questions.DoesQuestionExist(currentQuestionId);
 
             return complexQuestion != null ?
                 new Result<ComplexQuestions>(complexQuestion) :
@@ -298,7 +298,7 @@ namespace Assignment4WC.Logic
 
         private Result<int> GetMembersCurrentQuestionId(string username)
         {
-            var member = GetMemberOrNull(username);
+            var member = _repository.Members.GetMemberOrNull(username);
             if (member == null)
                 return GetMemberDoesNotExistError(username)
                     .ToResult<int>();
@@ -309,12 +309,6 @@ namespace Assignment4WC.Logic
                 currentQuestionIdResult :
                 currentQuestionIdResult.ToResult<int>();
         }
-
-        private Members? GetMemberOrNull(string username) =>
-            _context.Members.FirstOrDefault(members => members.Username == username);
-
-        private bool DoesUsernameExist(string username) =>
-            _context.Members.Any(members => members.Username == username);
 
         private static void AddToUserScore(Members member)
         {

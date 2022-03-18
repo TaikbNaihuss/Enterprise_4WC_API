@@ -10,6 +10,7 @@ using Assignment4WC.Models.ControllerEndpoints;
 using Assignment4WC.Models.ResultType;
 using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 using AutoFixture;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using FluentAssertions.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,6 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Net;
-using AutoFixture.Xunit2;
 using Xunit;
 
 namespace Assignment4WC.Tests.API
@@ -36,8 +36,6 @@ namespace Assignment4WC.Tests.API
             Fixture.Behaviors.Remove(new ThrowingRecursionBehavior());
             Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         }
-
-     
 
         public class GetCategoriesTests : FourWeekChallengeControllerTests
         {
@@ -58,7 +56,7 @@ namespace Assignment4WC.Tests.API
                     .Setup(manager => manager.GetCategoriesAndQuestionCount())
                     .Returns(() => expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetCategories()
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetValueAndLinks());
@@ -78,7 +76,7 @@ namespace Assignment4WC.Tests.API
                 var initialDetailsDto = GetValidInitialDetailsDto();
                 var expectedValue = $"'{nameof(appId)}' cannot be less than 0.";
 
-                new FourWeekChallengeController(new Mock<IFourWeekChallengeManager>().Object, Context)
+                new FourWeekChallengeController(new Mock<IFourWeekChallengeManager>().Object)
                     .StartGame(appId, initialDetailsDto)
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue);
@@ -95,7 +93,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockAddNewPlayer(managerMock, appId, initialDetailsDto, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .StartGame(appId, initialDetailsDto)
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
@@ -119,7 +117,7 @@ namespace Assignment4WC.Tests.API
                 httpContextMock.SetupGet(context => context.Request.Path)
                     .Returns(() => $"/{Fixture.Create<string>()}");
 
-                var controller = new FourWeekChallengeController(managerMock.Object, Context);
+                var controller = new FourWeekChallengeController(managerMock.Object);
                 controller.ControllerContext = new ControllerContext(
                     new ActionContext(httpContextMock.Object, new RouteData(), new ControllerActionDescriptor()));
 
@@ -162,7 +160,7 @@ namespace Assignment4WC.Tests.API
              
                 SetupManagerMockGetCurrentQuestionData(managerMock, username, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetQuestion(username)
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
@@ -180,7 +178,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetCurrentQuestionData(managerMock, username, new Result<Questions>((Questions)null!));
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetQuestion(username)
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(expectedValue);
@@ -188,7 +186,7 @@ namespace Assignment4WC.Tests.API
 
             [Theory]
             [AutoData]
-            public void GivenCurrentQuestionDataIsMultipleChoice_ThenReturnOkResultWithLinks(string username)
+            public void GivenCurrentQuestionTypeIsMultipleChoice_ThenReturnOkResultWithLinks(string username)
             {
                 var managerMock = new Mock<IFourWeekChallengeManager>();
 
@@ -206,7 +204,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetCurrentQuestionData(managerMock, username, result);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetQuestion(username)
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetValueAndLinks());
@@ -214,8 +212,7 @@ namespace Assignment4WC.Tests.API
 
             [Theory]
             [InlineAutoData(QuestionType.Text)]
-            [InlineAutoData(QuestionType.Picture)]
-            public void GivenCurrentQuestionDataIsNotMultipleChoice_ThenReturnOkResultWithLinks(QuestionType questionType, string username)
+            public void GivenCurrentQuestionTypeIsNotMultipleChoiceAndNotPicture_ThenReturnOkResultWithLinks(QuestionType questionType, string username)
             {
                 var managerMock = new Mock<IFourWeekChallengeManager>();
 
@@ -230,7 +227,30 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetCurrentQuestionData(managerMock, username, result);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
+                    .GetQuestion(username)
+                    .Should().BeOkObjectResult()
+                    .WithValueEquivalentTo(expectedValue.GetValueAndLinks());
+            }
+
+            [Theory]
+            [AutoData]
+            public void GivenCurrentQuestionTypeIsPicture_ThenReturnOkResultWithLinks(string username)
+            {
+                var managerMock = new Mock<IFourWeekChallengeManager>();
+
+                var result = new Result<Questions>(
+                    Fixture.Build<Questions>()
+                        .With(questions => questions.QuestionType, () => QuestionType.Picture)
+                        .Create());
+
+                var expectedValue = new Result<QuestionDto>(new QuestionDto(
+                        result.Unwrap().Question))
+                    .AddLink("submit", FourWeekChallengeEndpoint.SubmitPictureAnswerRouteWith(username));
+
+                SetupManagerMockGetCurrentQuestionData(managerMock, username, result);
+
+                new FourWeekChallengeController(managerMock.Object)
                     .GetQuestion(username)
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetValueAndLinks());
@@ -257,7 +277,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockSubmitAnswer(username, answer, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .SubmitAnswer(username, new AnswerDto(answer))
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
@@ -274,7 +294,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockSubmitAnswer(username, answer, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .SubmitAnswer(username, new AnswerDto(answer))
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetValueAndLinks());
@@ -284,6 +304,50 @@ namespace Assignment4WC.Tests.API
                 Mock<IFourWeekChallengeManager> managerMock, Result<bool> expectedValue)
             {
                 managerMock.Setup(manager => manager.SubmitAnswer(username, answer))
+                    .Returns(() => expectedValue);
+            }
+        }
+
+        public class SubmitPictureAnswerTests : FourWeekChallengeControllerTests
+        {
+            [Theory]
+            [AutoData]
+            public void GivenSubmitPictureAnswerReturnsErrorResult_ThenReturnBadRequestResultWithErrorAndLinks
+                (string username, string errorMessage)
+            {
+                var managerMock = new Mock<IFourWeekChallengeManager>();
+
+                var expectedValue = new Result<bool>(new ErrorMessage(HttpStatusCode.BadRequest, errorMessage));
+
+                SetupManagerMockSubmitPictureAnswer(username, managerMock, expectedValue);
+
+                new FourWeekChallengeController(managerMock.Object)
+                    .SubmitPictureAnswer(username, new Mock<IFormFile>().Object)
+                    .Should().BeBadRequestObjectResult()
+                    .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
+            }
+
+            [Theory]
+            [AutoData]
+            public void GivenSubmitPictureAnswerReturnsSuccessResult_ThenReturnOkRequestResultWithValueAndLinks(
+                string username, bool resultData)
+            {
+                var managerMock = new Mock<IFourWeekChallengeManager>();
+
+                var expectedValue = new Result<bool>(resultData);
+
+                SetupManagerMockSubmitPictureAnswer(username, managerMock, expectedValue);
+
+                new FourWeekChallengeController(managerMock.Object)
+                    .SubmitPictureAnswer(username, new Mock<IFormFile>().Object)
+                    .Should().BeOkObjectResult()
+                    .WithValueEquivalentTo(expectedValue.GetValueAndLinks());
+            }
+
+            private static void SetupManagerMockSubmitPictureAnswer(string username,
+                Mock<IFourWeekChallengeManager> managerMock, Result<bool> expectedValue)
+            {
+                managerMock.Setup(manager => manager.SubmitPictureAnswer(username, It.IsAny<IFormFile>()))
                     .Returns(() => expectedValue);
             }
         }
@@ -301,7 +365,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockUpdateUserLocation(username, latitude, longitude, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .SetUserLocation(username, new LocationDto(latitude, longitude))
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
@@ -318,7 +382,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockUpdateUserLocation(username, latitude, longitude, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .SetUserLocation(username, new LocationDto(latitude, longitude))
                     .Should().BeNoContentResult();
             }
@@ -343,7 +407,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetHint(username, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetHint(username)
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
@@ -359,7 +423,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetHint(username, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetHint(username)
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetValueAndLinks());
@@ -384,7 +448,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetLocationHint(username, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetLocationHint(username)
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
@@ -400,7 +464,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetLocationHint(username, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetLocationHint(username)
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetValueAndLinks());
@@ -425,7 +489,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockEndGame(username, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .EndGame(username)
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
@@ -441,7 +505,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockEndGame(username, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .EndGame(username)
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(new LinkReferencer()
@@ -470,7 +534,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetUserScore(username, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetUserScore(username)
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
@@ -486,7 +550,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetUserScore(username, managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetUserScore(username)
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetValueAndLinks());
@@ -511,7 +575,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetHighScores(managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetHighScores()
                     .Should().BeBadRequestObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetErrorAndLinks());
@@ -527,7 +591,7 @@ namespace Assignment4WC.Tests.API
 
                 SetupManagerMockGetHighScores(managerMock, expectedValue);
 
-                new FourWeekChallengeController(managerMock.Object, Context)
+                new FourWeekChallengeController(managerMock.Object)
                     .GetHighScores()
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(expectedValue.GetValueAndLinks());

@@ -19,4 +19,10 @@
     <ProjectReference Include="..\Assignment4WC\Assignement4WC.Models\Assignment4WC.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Repositories\ComplexQuestions\" />
+    <Folder Include="Repositories\Locations\" />
+    <Folder Include="Repositories\Questions\" />
+  </ItemGroup>
+
 </Project>
