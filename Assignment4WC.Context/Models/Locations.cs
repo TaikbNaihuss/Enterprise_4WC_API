@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using Geolocation;
 
 namespace Assignment4WC.Context.Models
 {
-    public class Locations
+    public partial class Locations
     {
         public int LocationId { get; set; }
 
@@ -13,5 +15,22 @@ namespace Assignment4WC.Context.Models
         public decimal Longitude { get; set; }
 
         public virtual ComplexQuestions Question { get; set; }
+    }
+
+    public partial class Locations
+    {
+        public int GetDistanceInMeters(Locations location)
+        {
+            var location1 = new Coordinate(decimal.ToDouble(Latitude), decimal.ToDouble(Longitude));
+            var location2 = new Coordinate(decimal.ToDouble(location.Latitude), decimal.ToDouble(location.Longitude));
+
+            return Convert.ToInt32(
+                Math.Round(
+                    ConvertMilesToMeters(
+                        GeoCalculator.GetDistance(location1, location2))));
+        }
+
+        private static double ConvertMilesToMeters(double miles) =>
+            miles * 1609.344;
     }
 }

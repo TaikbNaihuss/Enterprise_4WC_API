@@ -37,12 +37,6 @@ namespace Assignment4WC.Models.ResultType
             return ResultValue != null;
         }
 
-        public new Result<T> Ok()
-        {
-            IsSuccess = true;
-            return this;
-        }
-
         public new Result<T> AddLink(string content)
         {
             if (IsSuccess) ResultValue.AddLink(content);

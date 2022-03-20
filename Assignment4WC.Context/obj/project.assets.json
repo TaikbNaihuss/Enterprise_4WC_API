@@ -2,6 +2,15 @@
   "version": 3,
   "targets": {
     "net5.0": {
+      "Geolocation/1.2.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Geolocation.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Geolocation.dll": {}
+        }
+      },
       "Humanizer.Core/2.8.26": {
         "type": "package",
         "compile": {
@@ -1703,6 +1712,22 @@
     }
   },
   "libraries": {
+    "Geolocation/1.2.1": {
+      "sha512": "qvdjGKWydk4hKmyGvIExkpNhJ0qoAk88f+wTsuQ6Bdb6Zl2MJccmQRKF2DLtAuuGSkeF9N99BbO2eKk4F932Mw==",
+      "type": "package",
+      "path": "geolocation/1.2.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "geolocation.1.2.1.nupkg.sha512",
+        "geolocation.nuspec",
+        "lib/net451/Geolocation.dll",
+        "lib/net451/Geolocation.pdb",
+        "lib/netstandard2.0/Geolocation.dll",
+        "lib/netstandard2.0/Geolocation.pdb"
+      ]
+    },
     "Humanizer.Core/2.8.26": {
       "sha512": "OiKusGL20vby4uDEswj2IgkdchC1yQ6rwbIkZDVBPIR6al2b7n3pC91elBul9q33KaBgRKhbZH3+2Ur4fnWx2A==",
       "type": "package",
@@ -6116,6 +6141,7 @@
   "projectFileDependencyGroups": {
     "net5.0": [
       "Assignment4WC.Models >= 1.0.0",
+      "Geolocation >= 1.2.1",
       "Microsoft.EntityFrameworkCore >= 5.0.14",
       "Microsoft.EntityFrameworkCore.Relational >= 5.0.14",
       "Microsoft.EntityFrameworkCore.SqlServer >= 5.0.14",
@@ -6173,6 +6199,10 @@
       "net5.0": {
         "targetAlias": "net5.0",
         "dependencies": {
+          "Geolocation": {
+            "target": "Package",
+            "version": "[1.2.1, )"
+          },
           "Microsoft.EntityFrameworkCore": {
             "target": "Package",
             "version": "[5.0.14, )"

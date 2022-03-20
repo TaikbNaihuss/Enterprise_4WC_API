@@ -30,6 +30,7 @@ namespace Assignment4WC.API.Extensions
                 HttpStatusCode.BadRequest => controllerBase.BadRequest((ValueLink<T>)valueLink),
                 HttpStatusCode.NotFound => controllerBase.NotFound((ValueLink<T>)valueLink),
                 HttpStatusCode.InternalServerError => controllerBase.StatusCode(StatusCodes.Status500InternalServerError, (ValueLink<T>)valueLink),
+                HttpStatusCode.UnprocessableEntity => controllerBase.StatusCode(StatusCodes.Status422UnprocessableEntity, (ValueLink<T>)valueLink),
                 _ => null
             };
         }

@@ -1,0 +1,5 @@
+In "Full Walkthrough.mp4", you may have notices I only set the location once correctly
+and it worked for all questions.
+
+For the purposes of testing, all the questions had the same location. Just in case
+you wondered why they were all correct despite me setting the location correctly once.

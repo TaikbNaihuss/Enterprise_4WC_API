@@ -763,7 +763,7 @@ namespace Assignment4WC.Tests.Logic
                 SetupMockGetMemberOrNull(repositoryMock, fakeMember.Username, fakeMember);
 
                 var expectedValue = new Result(new ErrorMessage(HttpStatusCode.BadRequest,
-                        $"Game has not ended for user with name '{fakeMember.Username}.'"))
+                        $"Game has not ended for member with name '{fakeMember.Username}.'"))
                     .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(fakeMember.Username));
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
@@ -1188,10 +1188,13 @@ namespace Assignment4WC.Tests.Logic
 
             [Theory]
             [AutoData]
-            public void GivenQuestionComplexityIsComplexAndAnswerIsCorrectLocationIsIncorrect_ThenReturnSuccessResultWithoutIncrementingQuestionNumberOrUserScore(
+            public void GivenQuestionComplexityIsComplexAndAnswerIsCorrectAndLocationIsIncorrect_ThenReturnSuccessResultWithoutIncrementingQuestionNumberOrUserScore(
                 string username, string answer)
             {
                 var repositoryMock = new Mock<IGlobalRepository>(MockBehavior.Strict);
+
+
+                var fakeUserLocation = CreateFakeLocation();
 
                 var fakeQuestion = Fixture.Build<Questions>()
                     .With(question => question.Discriminator, QuestionComplexity.Complex.ToString)
@@ -1200,9 +1203,8 @@ namespace Assignment4WC.Tests.Logic
 
                 var fakeComplexQuestion = Fixture.Build<ComplexQuestions>()
                     .With(complexQuestion => complexQuestion.Discriminator, QuestionComplexity.Complex.ToString)
+                    .With(questions => questions.Location, CreateFakeLocation())
                     .Create();
-
-                var fakeLocation = Fixture.Create<Locations>();
 
                 var questionIds = BuildQuestionIds(10);
 
@@ -1220,7 +1222,7 @@ namespace Assignment4WC.Tests.Logic
                 SetupMockGetMemberOrNull(repositoryMock, fakeMemberObj.Username, fakeMemberObj);
                 SetupMockGetQuestionOrNull(repositoryMock, currentQuestionId, fakeQuestion);
                 SetupMockGetComplexQuestion(repositoryMock, fakeQuestion.QuestionId, fakeComplexQuestion);
-                SetupMockGetLocationByLocationIdOrNull(repositoryMock, fakeMemberObj, fakeLocation);
+                SetupMockGetLocationByLocationIdOrNull(repositoryMock, fakeMemberObj, fakeUserLocation);
                 SetupMockSaveChanges(repositoryMock);
 
                 var expectedValue = new Result<bool>(false)
@@ -1243,7 +1245,7 @@ namespace Assignment4WC.Tests.Logic
             {
                 var repositoryMock = new Mock<IGlobalRepository>(MockBehavior.Strict);
 
-                var fakeLocation = Fixture.Create<Locations>();
+                var fakeLocation = CreateFakeLocation();
 
                 var fakeQuestion = Fixture.Build<Questions>()
                     .With(question => question.Discriminator, QuestionComplexity.Complex.ToString)
@@ -1296,7 +1298,7 @@ namespace Assignment4WC.Tests.Logic
             {
                 var repositoryMock = new Mock<IGlobalRepository>(MockBehavior.Strict);
 
-                var fakeLocation = Fixture.Create<Locations>();
+                var fakeLocation = CreateFakeLocation();
 
                 var fakeQuestion = Fixture.Build<Questions>()
                     .With(question => question.Discriminator, QuestionComplexity.Complex.ToString)
@@ -1349,7 +1351,7 @@ namespace Assignment4WC.Tests.Logic
             {
                 var repositoryMock = new Mock<IGlobalRepository>(MockBehavior.Strict);
 
-                var fakeLocation = Fixture.Create<Locations>();
+                var fakeLocation = CreateFakeLocation();
 
                 var fakeQuestion = Fixture.Build<Questions>()
                     .With(question => question.Discriminator, QuestionComplexity.Complex.ToString)
@@ -1400,7 +1402,7 @@ namespace Assignment4WC.Tests.Logic
             {
                 var repositoryMock = new Mock<IGlobalRepository>(MockBehavior.Strict);
 
-                var fakeLocation = Fixture.Create<Locations>();
+                var fakeLocation = CreateFakeLocation();
 
                 var fakeQuestion = Fixture.Build<Questions>()
                     .With(question => question.Discriminator, QuestionComplexity.Complex.ToString)
@@ -1450,6 +1452,16 @@ namespace Assignment4WC.Tests.Logic
                 repositoryMock.Setup(repository =>
                         repository.Locations.GetLocationByLocationIdOrNull(fakeMemberObj.LocationId))
                     .Returns(location);
+            }
+
+            private Locations CreateFakeLocation()
+            {
+                var random = new Random();
+
+                return Fixture.Build<Locations>()
+                    .With(locations => locations.Latitude, random.Next(90))
+                    .With(locations => locations.Longitude, random.Next(180))
+                    .Create();
             }
         }
 

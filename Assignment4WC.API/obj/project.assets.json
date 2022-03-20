@@ -40,6 +40,15 @@
           "lib/netstandard2.1/FluentValidation.DependencyInjectionExtensions.dll": {}
         }
       },
+      "Geolocation/1.2.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Geolocation.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Geolocation.dll": {}
+        }
+      },
       "Humanizer.Core/2.8.26": {
         "type": "package",
         "compile": {
@@ -1817,6 +1826,7 @@
         "framework": ".NETCoreApp,Version=v5.0",
         "dependencies": {
           "Assignment4WC.Models": "1.0.0",
+          "Geolocation": "1.2.1",
           "Microsoft.EntityFrameworkCore": "5.0.14",
           "Microsoft.EntityFrameworkCore.Relational": "5.0.14",
           "Microsoft.EntityFrameworkCore.SqlServer": "5.0.14",
@@ -1911,6 +1921,22 @@
         "lib/netstandard2.0/FluentValidation.DependencyInjectionExtensions.xml",
         "lib/netstandard2.1/FluentValidation.DependencyInjectionExtensions.dll",
         "lib/netstandard2.1/FluentValidation.DependencyInjectionExtensions.xml"
+      ]
+    },
+    "Geolocation/1.2.1": {
+      "sha512": "qvdjGKWydk4hKmyGvIExkpNhJ0qoAk88f+wTsuQ6Bdb6Zl2MJccmQRKF2DLtAuuGSkeF9N99BbO2eKk4F932Mw==",
+      "type": "package",
+      "path": "geolocation/1.2.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "geolocation.1.2.1.nupkg.sha512",
+        "geolocation.nuspec",
+        "lib/net451/Geolocation.dll",
+        "lib/net451/Geolocation.pdb",
+        "lib/netstandard2.0/Geolocation.dll",
+        "lib/netstandard2.0/Geolocation.pdb"
       ]
     },
     "Humanizer.Core/2.8.26": {

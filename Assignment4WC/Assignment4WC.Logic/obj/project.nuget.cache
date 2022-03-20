@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "R1CjK9/4ffZeNvP+FEJwcNtRX9GauTk9BWoFs4h/g9jZPshQUwB4XXA3L+Pu597/c357cgWgTE1CBfkE2rOADQ==",
+  "dgSpecHash": "z0EgJa1etpV4rZwwq5ACikGolE+bge6p2jeRym2+QOe94VbiTGmZZzA4v5yBWB90Qgjn0EHB2UQO72Cwa7eDEw==",
   "success": true,
   "projectFilePath": "E:\\Desktop\\Third Year Material\\CO3409 Enterprise Application Development\\Assignment\\Assignment4WC\\Assignment4WC.Logic\\Assignment4WC.Logic.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\katib\\.nuget\\packages\\geolocation\\1.2.1\\geolocation.1.2.1.nupkg.sha512",
     "C:\\Users\\katib\\.nuget\\packages\\microsoft.aspnetcore.http.features\\5.0.15\\microsoft.aspnetcore.http.features.5.0.15.nupkg.sha512",
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",
     "C:\\Users\\katib\\.nuget\\packages\\microsoft.data.sqlclient\\2.0.1\\microsoft.data.sqlclient.2.0.1.nupkg.sha512",

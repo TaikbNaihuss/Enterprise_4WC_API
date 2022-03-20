@@ -46,8 +46,7 @@ namespace Assignment4WC.API.Controllers
                 ? Created(HttpContext.Request.Path, new LinkReferencer()
                     .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username))
                     .GetLinks()) 
-                : result.AddLink(FourWeekChallengeEndpoint.StartRouteWith(appId.ToString()))
-                    .GetErrorAndLinks()
+                : result.GetErrorAndLinks()
                     .ToActionResult(this);
         }
 

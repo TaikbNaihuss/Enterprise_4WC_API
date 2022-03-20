@@ -2,6 +2,15 @@
   "version": 3,
   "targets": {
     "net5.0": {
+      "Geolocation/1.2.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Geolocation.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Geolocation.dll": {}
+        }
+      },
       "Microsoft.AspNetCore.Http.Features/5.0.15": {
         "type": "package",
         "dependencies": {
@@ -1679,6 +1688,7 @@
         "framework": ".NETCoreApp,Version=v5.0",
         "dependencies": {
           "Assignment4WC.Models": "1.0.0",
+          "Geolocation": "1.2.1",
           "Microsoft.EntityFrameworkCore": "5.0.14",
           "Microsoft.EntityFrameworkCore.Relational": "5.0.14",
           "Microsoft.EntityFrameworkCore.SqlServer": "5.0.14",
@@ -1704,6 +1714,22 @@
     }
   },
   "libraries": {
+    "Geolocation/1.2.1": {
+      "sha512": "qvdjGKWydk4hKmyGvIExkpNhJ0qoAk88f+wTsuQ6Bdb6Zl2MJccmQRKF2DLtAuuGSkeF9N99BbO2eKk4F932Mw==",
+      "type": "package",
+      "path": "geolocation/1.2.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "geolocation.1.2.1.nupkg.sha512",
+        "geolocation.nuspec",
+        "lib/net451/Geolocation.dll",
+        "lib/net451/Geolocation.pdb",
+        "lib/netstandard2.0/Geolocation.dll",
+        "lib/netstandard2.0/Geolocation.pdb"
+      ]
+    },
     "Microsoft.AspNetCore.Http.Features/5.0.15": {
       "sha512": "K+94zdxmXJeEBWMoIqkhgdo0gQ+wIVIqye0MrUAMI9PrCB4+PX8+jyux90XmB1iVszUAjbEW6geYq3OjYOC0Rw==",
       "type": "package",

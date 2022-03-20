@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "Wg6GbuzMs3POllnYebQSZ+JI0C6jVkRMJRAWbK3/k/YQrmmtEMOjpYunYlZDORMIg5xLJaeE2qQfjYOxk2apmw==",
+  "dgSpecHash": "SADlFP/KHisaeezFNgz+PbXgqXtapexq/m8ggVfWzmYA5ckc7NrSw/MECOJSpPNIT4Ekn+rX2dx5UOWdzRtmoA==",
   "success": true,
   "projectFilePath": "E:\\Desktop\\Third Year Material\\CO3409 Enterprise Application Development\\Assignment\\Assignment4WC.API\\Assignment4WC.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\katib\\.nuget\\packages\\fluentvalidation\\10.3.6\\fluentvalidation.10.3.6.nupkg.sha512",
     "C:\\Users\\katib\\.nuget\\packages\\fluentvalidation.aspnetcore\\10.3.6\\fluentvalidation.aspnetcore.10.3.6.nupkg.sha512",
     "C:\\Users\\katib\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\10.3.6\\fluentvalidation.dependencyinjectionextensions.10.3.6.nupkg.sha512",
+    "C:\\Users\\katib\\.nuget\\packages\\geolocation\\1.2.1\\geolocation.1.2.1.nupkg.sha512",
     "C:\\Users\\katib\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\katib\\.nuget\\packages\\microsoft.aspnetcore.http.features\\5.0.15\\microsoft.aspnetcore.http.features.5.0.15.nupkg.sha512",
     "C:\\Users\\katib\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",

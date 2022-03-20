@@ -150,7 +150,7 @@ namespace Assignment4WC.Logic
             return HasGameEnded(member) ? 
                 new Result().Ok() : 
                 new Result(new ErrorMessage(HttpStatusCode.BadRequest,
-                    $"Game has not ended for user with name '{username}.'"))
+                    $"Game has not ended for member with name '{username}.'"))
                     .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username));
 
         }
@@ -222,7 +222,7 @@ namespace Assignment4WC.Logic
                 {
                     if (complexQuestionData != null)
                     {
-                        var sameLocationsResult = AreLocationsTheSame(complexQuestionData, member);
+                        var sameLocationsResult = AreLocationsCloseEnough(complexQuestionData, member);
                         if (!sameLocationsResult.IsSuccess)
                             return sameLocationsResult;
 
@@ -248,8 +248,9 @@ namespace Assignment4WC.Logic
                 result.AddLink(FourWeekChallengeEndpoint.EndGameRouteWith(username));
         }
 
-        private Result<bool> AreLocationsTheSame(ComplexQuestions complexQuestionData, Members member)
+        private Result<bool> AreLocationsCloseEnough(ComplexQuestions complexQuestionData, Members member)
         {
+            const int correctLocationRadius = 20;
             var complexQuestionLocation = complexQuestionData.Location;
             var memberLocation = _repository.Locations.GetLocationByLocationIdOrNull(member.LocationId);
 
@@ -259,8 +260,9 @@ namespace Assignment4WC.Logic
                             $"Member with username '{member.Username}' does not have a location set."))
                     .AddLink(FourWeekChallengeEndpoint.SetUserLocationRouteWith(member.Username));
 
-            return new Result<bool>(complexQuestionLocation.Latitude == memberLocation.Latitude &&
-                                    complexQuestionLocation.Longitude == memberLocation.Longitude);
+            var withinLocationRadius = memberLocation.GetDistanceInMeters(complexQuestionLocation) <= correctLocationRadius;
+
+            return new Result<bool>(withinLocationRadius);
         }
 
         private IEnumerable<int> GetQuestionCountInIncrements(CategoryType category, int increments)
@@ -343,6 +345,7 @@ namespace Assignment4WC.Logic
                 new Result<int>(new ErrorMessage(HttpStatusCode.NotFound, $"Game has ended for member with name '{member.Username}'."))
                     .AddLink(FourWeekChallengeEndpoint.EndGameRouteWith(member.Username));
         }
+
 
         private static Result GetMemberDoesNotExistError(string username) =>
             new Result(new ErrorMessage(HttpStatusCode.NotFound,
