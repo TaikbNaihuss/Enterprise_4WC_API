@@ -7,6 +7,7 @@ using FluentAssertions;
 using FluentAssertions.Execution;
 using FluentAssertions.Numeric;
 using FluentAssertions.Primitives;
+using Newtonsoft.Json;
 
 namespace Assignment4WC.Tests
 {
@@ -111,13 +112,24 @@ namespace Assignment4WC.Tests
                           $"\nActual Has Value:\n{parentResult.HasValue()}\n" +
                           $"\nExpected Has Value:\n{expectedResult.HasValue()}");
 
-            if(parentResult.HasValue() && expectedResult.HasValue())
+            if (parentResult.HasValue() && expectedResult.HasValue())
+            {
                 Execute.Assertion
-                .Given(() => parentResult)
-                .ForCondition(_ => CompareValueLinkDictionaries(parentResult, expectedResult))
-                .FailWith("Actual result and expected result value links differ." +
-                          $"\nActual Value Links:\n{GetKeyAndValues(parentResult.GetValueAndLinks().Links)}\n" +
-                          $"\nExpected Value Links:\n{GetKeyAndValues(expectedResult.GetValueAndLinks().Links)}");
+                    .Given(() => parentResult)
+                    .ForCondition(_ => JsonCompare(parentResult, expectedResult))
+                    .FailWith("Actual result and expected result contain different values." +
+                              $"\nActual Has Value:\n{JsonConvert.SerializeObject(parentResult.Unwrap(), Formatting.Indented)}\n" +
+                              $"\nExpected Has Value:\n{JsonConvert.SerializeObject(expectedResult.Unwrap(), Formatting.Indented)}");
+
+                Execute.Assertion
+                    .Given(() => parentResult)
+                    .ForCondition(_ => CompareValueLinkDictionaries(parentResult, expectedResult))
+                    .FailWith("Actual result and expected result value links differ." +
+                              $"\nActual Value Links:\n{GetKeyAndValues(parentResult.GetValueAndLinks().Links)}\n" +
+                              $"\nExpected Value Links:\n{GetKeyAndValues(expectedResult.GetValueAndLinks().Links)}");
+            }
+
+           
 
 
             return new AndConstraint<ObjectAssertions>(parent);
@@ -191,6 +203,18 @@ namespace Assignment4WC.Tests
             var y = expectedResult.GetErrorAndLinks().Links;
 
             return x.Keys.Count == y.Keys.Count && x.Keys.All(k => y.ContainsKey(k) && x[k] == y[k]);
+        }
+
+        public static bool JsonCompare<TType>(this Result<TType> obj, Result<TType> another)
+        {
+            if (ReferenceEquals(obj, another)) return true;
+            if ((obj == null) || (another == null)) return false;
+            if (obj.GetType() != another.GetType()) return false;
+
+            var objJson = JsonConvert.SerializeObject(obj.Unwrap());
+            var anotherJson = JsonConvert.SerializeObject(another.Unwrap());
+
+            return objJson == anotherJson;
         }
     }
 }

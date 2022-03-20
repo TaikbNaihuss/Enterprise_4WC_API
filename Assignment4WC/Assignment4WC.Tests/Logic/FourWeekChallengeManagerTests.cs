@@ -32,23 +32,39 @@ namespace Assignment4WC.Tests.Logic
         {
             [Theory]
             [AutoData]
-            public void ThenReturnsCategoriesWithQuestionCount(Result<List<CategoryWithQuestionCount>> result, int questionCount)
+            public void ThenReturnsCategoriesWithQuestionCount(int questionCount)
             {
                 var repositoryMock = new Mock<IGlobalRepository>(MockBehavior.Strict);
 
                 SetupMockCountQuestionsFromCategory(repositoryMock, questionCount);
 
-                var expectedValue = result.AddLink(FourWeekChallengeEndpoint.StartRoute);
+                var expectedValue = new Result<List<CategoryWithQuestionCount>>(
+                    Enum.GetNames(typeof(CategoryType))
+                        .Select(categoryString => (CategoryType) Enum.Parse(typeof(CategoryType), categoryString))
+                        .Select(category => new CategoryWithQuestionCount(
+                            category.ToString(),
+                            GetQuestionCountInIncrements(questionCount, 5)))
+                        .ToList()).AddLink(FourWeekChallengeEndpoint.StartRoute);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetCategoriesAndQuestionCount()
                     .Should().BeResultEquivalentTo(expectedValue);
             }
 
-            private static void SetupMockCountQuestionsFromCategory(Mock<IGlobalRepository> repositoryMock, int questionCount)
+            private static void SetupMockCountQuestionsFromCategory(Mock<IGlobalRepository> repositoryMock,
+                int questionCount)
             {
-                repositoryMock.Setup(repository => repository.Questions.CountQuestionsFromCategory(It.IsAny<CategoryType>()))
+                repositoryMock.Setup(repository =>
+                        repository.Questions.CountQuestionsFromCategory(It.IsAny<CategoryType>()))
                     .Returns(questionCount);
+            }
+
+            private IEnumerable<int> GetQuestionCountInIncrements(int questionCount, int increments)
+            {
+                for (var i = 0; i < questionCount / increments; i++)
+                {
+                    yield return increments * (i + 1);
+                }
             }
         }
 
@@ -705,7 +721,7 @@ namespace Assignment4WC.Tests.Logic
                 SetupMockDoesQuestionExist(repositoryMock, currentQuestionId, questionExists);
                 SetupMockSaveChanges(repositoryMock);
 
-                var expectedValue = new Result<string>(fakeComplexQuestion.Hint);
+                var expectedValue = new Result<string>(fakeComplexQuestion.LocationHint);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetLocationHintFromQuestion(fakeMember.Username)
@@ -899,7 +915,7 @@ namespace Assignment4WC.Tests.Logic
                 var expectedValue = new Result<bool>(false)
                     .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username));
 
-                SetupGetMockOnFilename(fileExtension, fileName, fileMock);
+                SetupGetMockOnFileName(fileExtension, fileName, fileMock);
 
                 SetupMockForceSubmitAnswerForSuccess(repositoryMock, username);
 
@@ -928,7 +944,7 @@ namespace Assignment4WC.Tests.Logic
 
             }
 
-            private static void SetupGetMockOnFilename(string fileExtension, string fileName, Mock<IFormFile> fileMock)
+            private static void SetupGetMockOnFileName(string fileExtension, string fileName, Mock<IFormFile> fileMock)
             {
                 fileMock.SetupGet(file => file.FileName)
                     .Returns($"{fileName}.{fileExtension}");
@@ -1106,7 +1122,7 @@ namespace Assignment4WC.Tests.Logic
                 if(complexity == QuestionComplexity.Complex) SetupMockGetComplexQuestion(repositoryMock, fakeQuestion.QuestionId, fakeComplexQuestion);
                 SetupMockSaveChanges(repositoryMock);
 
-                var expectedValue = new Result<bool>(false)
+                var expectedValue = new Result<bool>(true)
                     .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(fakeMemberObj.Username));
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
@@ -1207,7 +1223,7 @@ namespace Assignment4WC.Tests.Logic
                 SetupMockGetLocationByLocationIdOrNull(repositoryMock, fakeMemberObj, fakeLocation);
                 SetupMockSaveChanges(repositoryMock);
 
-                var expectedValue = new Result<bool>(true)
+                var expectedValue = new Result<bool>(false)
                     .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(fakeMemberObj.Username));
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
