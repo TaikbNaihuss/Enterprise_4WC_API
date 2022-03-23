@@ -3,7 +3,6 @@ using Assignment4WC.Context.Repositories.ComplexQuestions;
 using Assignment4WC.Context.Repositories.Locations;
 using Assignment4WC.Context.Repositories.Member;
 using Assignment4WC.Context.Repositories.Questions;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Assignment4WC.Context.Repositories
 {

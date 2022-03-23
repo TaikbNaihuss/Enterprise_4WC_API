@@ -1,17 +1,13 @@
 ﻿using Assignment4WC.API.Controllers.Models;
 using Assignment4WC.API.Extensions;
-using Assignment4WC.Context;
 using Assignment4WC.Logic;
 using Assignment4WC.Models;
 using Assignment4WC.Models.ControllerEndpoints;
 using Assignment4WC.Models.ResultType;
 using Assignment4WC.Models.ResultType.LinkReferencerObjects;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.IO;
-using System.Linq;
-using System.Net;
-using Microsoft.AspNetCore.Http;
 
 namespace Assignment4WC.API.Controllers
 {
@@ -37,11 +33,15 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.StartRoute)]
         public IActionResult StartGame(int appId, [FromBody] InitialDetailsDto initialDetails)
         {
+            //If the appID is less than zero, return a bad request with an error.
             if (appId < 0) return BadRequest($"'{nameof(appId)}' cannot be less than 0.");
             var (category, numOfQuestions, username) = initialDetails;
 
+            //Add the new player.
             var result = _manager.AddNewPlayer(appId, username, Enum.Parse<CategoryType>(category, true), numOfQuestions);
 
+            //If the operation was successful, return a Created status code with appropriate link(s),
+            //otherwise return the errors and links.
             return result.IsSuccess
                 ? Created(HttpContext.Request.Path, new LinkReferencer()
                     .AddLink(FourWeekChallengeEndpoint.GetQuestionRouteWith(username))
@@ -54,14 +54,20 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.GetQuestionRoute)]
         public IActionResult GetQuestion(string username)
         {
+            //Get the current question data for the possible member.
+            //If an error occurs in that process, return the error with an appropriate link.
             var questionDataResult = _manager.GetCurrentQuestionData(username);
             if (!questionDataResult.IsSuccess) 
                 return questionDataResult
                     .GetErrorAndLinks()
                     .ToActionResult(this);
 
+            //Get the value from the result.
             var questionData = questionDataResult.Unwrap();
             
+            //If there is questionData, given its multiple choice, add all applicable answers associated with the answer.
+            //Any other type of question can just take the question data and disregard the answer data.
+            //If no question data was return, the game has ended and just append appropriate link(s) to the OK status code result.
             return questionData != null ?
                 questionData.QuestionType == QuestionType.MultipleChoice ?
                     AppendValueLinkData(new Result<QuestionAndAnswersDto>(
@@ -77,6 +83,8 @@ namespace Assignment4WC.API.Controllers
                     .AddLink(FourWeekChallengeEndpoint.EndGameRouteWith(username))
                     .GetLinks());
 
+            //Appends specific links to the submit endpoints given the question is a picture,
+            //it also appends the original links from the result evaluated prior.
             IActionResult AppendValueLinkData<T>(Result<T> result, QuestionType questionType)
             {
                 return (questionType != QuestionType.Picture ?
@@ -92,8 +100,10 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.SubmitAnswerRoute)]
         public IActionResult SubmitAnswer(string username, [FromBody] AnswerDto answerContainer)
         {
+            //Submits the users answer and return a result after the process is finished.
             var result = _manager.SubmitAnswer(username, answerContainer.Answer);
 
+            //If the result is a success, give the value data, otherwise the error data.
             return result.IsSuccess ?
                     result.GetValueAndLinks().ToActionResult(this):
                     result.GetErrorAndLinks().ToActionResult(this);
@@ -103,8 +113,10 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.SubmitPictureAnswerRoute)]
         public IActionResult SubmitPictureAnswer(string username, IFormFile picture)
         {
+            //Submits the users picture answer and return a result after the process is finished.
             var result = _manager.SubmitPictureAnswer(username, picture);
 
+            //If the result is a success, give the value data, otherwise the error data.
             return result.IsSuccess ?
                 result.GetValueAndLinks().ToActionResult(this) :
                 result.GetErrorAndLinks().ToActionResult(this);
@@ -114,8 +126,10 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.SetUserLocationRoute)]
         public IActionResult SetUserLocation(string username, LocationDto location)
         {
+            //Updates the users location and return a result after the process is finished.
             var result = _manager.UpdateUserLocation(username, location.Latitude, location.Longitude);
 
+            //If the result is a success, give the value data, otherwise the error data.
             return result.IsSuccess ?
                 NoContent() :
                 result.GetErrorAndLinks().ToActionResult(this);
@@ -125,8 +139,10 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.GetHintRoute)]
         public IActionResult GetHint(string username)
         {
+            //Gets a possible hint for the user and return a result after the process is finished.
             var result = _manager.GetHintFromQuestion(username);
 
+            //If the result is a success, give the value data, otherwise the error data.
             return result.IsSuccess ?
                 result.GetValueAndLinks().ToActionResult(this):
                 result.GetErrorAndLinks().ToActionResult(this);
@@ -136,8 +152,10 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.GetLocationHintRoute)]
         public IActionResult GetLocationHint(string username)
         {
+            //Gets a possible location hint for the user and return a result after the process is finished.
             var result = _manager.GetLocationHintFromQuestion(username);
-           
+
+            //If the result is a success, give the value data, otherwise the error data.
             return result.IsSuccess ?
                 result.GetValueAndLinks().ToActionResult(this) :
                 result.GetErrorAndLinks().ToActionResult(this);
@@ -147,8 +165,11 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.EndGameRoute)]
         public IActionResult EndGame(string username)
         {
+            //Checks if the game has ended for the user and return a result after the process is finished.
             var result = _manager.EndGame(username);
 
+            //If the result is a success, return an OK status code result with appropriate link(s),
+            //otherwise return the error and its links.
             return result.IsSuccess ?
                 Ok(new LinkReferencer()
                         .AddLink("categories", FourWeekChallengeEndpoint.GetCategories)
@@ -162,7 +183,10 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.GetUserScoreRoute)]
         public IActionResult GetUserScore(string username)
         {
+            //Gets a possible members user score and return a result after the process is finished.
             var result = _manager.GetUserScore(username);
+
+            //If the result is a success, give the value data, otherwise the error data.
             return result.IsSuccess ?
                 result.GetValueAndLinks().ToActionResult(this) :
                 result.GetErrorAndLinks().ToActionResult(this);
@@ -172,8 +196,10 @@ namespace Assignment4WC.API.Controllers
         [Route(FourWeekChallengeEndpoint.GetHighScoresRoute)]
         public IActionResult GetHighScores()
         {
+            //Gets all high scores from all registered members and return a result after the process is finished.
             var result = _manager.GetHighScores();
-            
+
+            //If the result is a success, give the value data, otherwise the error data.
             return result.IsSuccess ?
                 result.GetValueAndLinks().ToActionResult(this) :
                 result.GetErrorAndLinks().ToActionResult(this);

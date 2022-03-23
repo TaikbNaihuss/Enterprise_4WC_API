@@ -158,29 +158,6 @@ namespace Assignment4WC.Tests
             return (x == null && y != null) || (x != null && y == null);
         }
 
-        //private static bool AreEitherValueLinks<TType>(Result<TType> parentResult, Result<TType> expectedResult)
-        //{
-        //    var x = parentResult.GetValueAndLinks().Links;
-        //    var y = expectedResult.GetValueAndLinks().Links;
-
-        //    return (x == null && y != null) || (x != null && y == null);
-        //}
-
-        //private static bool AreEitherErrorLinksNull(Result parentResult, Result expectedResult)
-        //{
-        //    var x = parentResult.GetErrorAndLinks().Links;
-        //    var y = expectedResult.GetErrorAndLinks().Links;
-
-        //    return (x == null && y != null) || (x != null && y == null);
-        //}
-
-        //private static bool AreEitherErrorLinkssNull(Result parentResult, Result expectedResult)
-        //{
-        //    var x = parentResult.GetErrorAndLinks().Links;
-        //    var y = expectedResult.GetErrorAndLinks().Links;
-
-        //    return (x == null && y != null) || (x != null && y == null);
-        //}
         private static bool CompareValueLinkDictionaries<TType>(Result<TType> parentResult, Result<TType> expectedResult)
         {
             var x = parentResult.GetValueAndLinks().Links;

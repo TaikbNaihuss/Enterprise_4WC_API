@@ -9,6 +9,8 @@ namespace Assignment4WC.Models.ResultType
         private readonly bool _isSuccess;
         public T Value { get; }
         public Dictionary<string, string> Links { get; }
+
+        //Properties used explicitly for mapping to an ActionResult automatically.
         HttpStatusCode? IValueLinkDiscriminator<T>.StatusCode => _statusCode;
         bool IValueLinkDiscriminator<T>.IsSuccess => _isSuccess;
 

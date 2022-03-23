@@ -19,6 +19,8 @@ namespace Assignment4WC.Context.Models
 
     public partial class Locations
     {
+        private const double MetersToMilesFactor = 1609.344;
+
         public int GetDistanceInMeters(Locations location)
         {
             var location1 = new Coordinate(decimal.ToDouble(Latitude), decimal.ToDouble(Longitude));
@@ -30,7 +32,9 @@ namespace Assignment4WC.Context.Models
                         GeoCalculator.GetDistance(location1, location2))));
         }
 
-        private static double ConvertMilesToMeters(double miles) =>
-            miles * 1609.344;
+        private static double ConvertMilesToMeters(double miles)
+        {
+            return miles * MetersToMilesFactor;
+        }
     }
 }
