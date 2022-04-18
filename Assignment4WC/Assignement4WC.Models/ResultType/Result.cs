@@ -1,6 +1,7 @@
 ﻿using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 using System;
 using System.Linq.Expressions;
+using Assignment4WC.Models.ControllerEndpoints;
 
 namespace Assignment4WC.Models.ResultType
 {
@@ -40,7 +41,7 @@ namespace Assignment4WC.Models.ResultType
         }
 
         //Adds links to values with the key "href"
-        public new Result<T> AddLink(string content)
+        public new Result<T> AddLink(HateoasString content)
         {
             if (IsSuccess) ResultValue.AddLink(content);
             else base.AddLink(content);
@@ -49,7 +50,7 @@ namespace Assignment4WC.Models.ResultType
         }
 
         //Adds links to values with the key and value provided by the developer
-        public new Result<T> AddLink(string key, string content)
+        public new Result<T> AddLink(string key, HateoasString content)
         {
             if (IsSuccess) ResultValue.AddLink(key, content);
             else base.AddLink(key, content);
@@ -96,14 +97,14 @@ namespace Assignment4WC.Models.ResultType
         }
 
         //Adds links to errors with the key "href"
-        public Result AddLink(string content)
+        public Result AddLink(HateoasString content)
         {
             Error.AddLink(content);
             return this;
         }
 
         //Adds links to errors with the key and value provided by the developer
-        public Result AddLink(string key, string content)
+        public Result AddLink(string key, HateoasString content)
         {
             Error.AddLink(key, content);
             return this;

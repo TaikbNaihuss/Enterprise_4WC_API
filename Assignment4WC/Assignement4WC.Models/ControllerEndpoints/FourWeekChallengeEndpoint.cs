@@ -14,22 +14,36 @@
         public const string GetUserScoreRoute = "score/{username}";
         public const string GetHighScoresRoute = "score/high";
 
+        public static HateoasString GetCategoriesHateoas = new(GetCategories, HttpAction.GET.ToString());
+        public static HateoasString StartRouteHateoas = new(StartRoute, HttpAction.POST.ToString());
+        public static HateoasString GetQuestionRouteHateoas = new(GetQuestionRoute, HttpAction.GET.ToString());
+        public static HateoasString SubmitAnswerRouteHateoas = new(SubmitAnswerRoute, HttpAction.POST.ToString());
+        public static HateoasString SubmitPictureAnswerRouteHateoas = new(SubmitPictureAnswerRoute, HttpAction.POST.ToString());
+        public static HateoasString SetUserLocationRouteHateoas = new(SetUserLocationRoute, HttpAction.PUT.ToString());
+        public static HateoasString GetHintRouteHateoas = new(GetHintRoute, HttpAction.GET.ToString());
+        public static HateoasString GetLocationHintRouteHateoas = new(GetLocationHintRoute, HttpAction.GET.ToString());
+        public static HateoasString EndGameRouteHateoas = new(EndGameRoute, HttpAction.PUT.ToString());
+        public static HateoasString GetUserScoreRouteHateoas = new(GetUserScoreRoute, HttpAction.GET.ToString());
+        public static HateoasString GetHighScoresRouteHateoas = new(GetHighScoresRoute, HttpAction.GET.ToString());
+        
+        public static HateoasString StartRouteWith(string appId) => GetInterpolatedRoute(StartRouteHateoas, "appId", appId);
+        public static HateoasString GetQuestionRouteWith(string username) => GetInterpolatedRoute(GetQuestionRouteHateoas, "username", username);
+        public static HateoasString SubmitAnswerRouteWith(string username) => GetInterpolatedRoute(SubmitAnswerRouteHateoas, "username", username);
+        public static HateoasString SubmitPictureAnswerRouteWith(string username) => GetInterpolatedRoute(SubmitPictureAnswerRouteHateoas, "username", username);
+        public static HateoasString SetUserLocationRouteWith(string username) => GetInterpolatedRoute(SetUserLocationRouteHateoas, "username", username);
+        public static HateoasString GetHintRouteWith(string username) => GetInterpolatedRoute(GetHintRouteHateoas, "username", username);
+        public static HateoasString GetLocationHintRouteWith(string username) => GetInterpolatedRoute(GetLocationHintRouteHateoas, "username", username);
+        public static HateoasString EndGameRouteWith(string username) => GetInterpolatedRoute(EndGameRouteHateoas, "username", username);
+        public static HateoasString GetUserScoreRouteWith(string username) => GetInterpolatedRoute(GetUserScoreRouteHateoas, "username", username);
 
-        public static string StartRouteWith(string appId) => GetInterpolatedRoute(StartRoute, "appId", appId);
-        public static string GetQuestionRouteWith(string username) => GetInterpolatedRoute(GetQuestionRoute, "username", username);
-        public static string SubmitAnswerRouteWith(string username) => GetInterpolatedRoute(SubmitAnswerRoute, "username", username);
-        public static string SubmitPictureAnswerRouteWith(string username) => GetInterpolatedRoute(SubmitPictureAnswerRoute, "username", username);
-        public static string SetUserLocationRouteWith(string username) => GetInterpolatedRoute(SetUserLocationRoute, "username", username);
-        public static string GetHintRouteWith(string username) => GetInterpolatedRoute(GetHintRoute, "username", username);
-        public static string GetLocationHintRouteWith(string username) => GetInterpolatedRoute(GetLocationHintRoute, "username", username);
-        public static string EndGameRouteWith(string username) => GetInterpolatedRoute(EndGameRoute, "username", username);
-        public static string GetUserScoreRouteWith(string username) => GetInterpolatedRoute(GetUserScoreRoute, "username", username);
+        private static HateoasString GetInterpolatedRoute(HateoasString source, string key, string value)
+        {
+            var newRoute = source.RouteName.Replace("{" + key + "}", value);
+            return new HateoasString(newRoute, source.HttpAction);
+        }
 
 
-        private static string GetInterpolatedRoute(string source, string key, string value) =>
-            source.Replace("{" + key + "}", value);
 
 
-      
     }
 }

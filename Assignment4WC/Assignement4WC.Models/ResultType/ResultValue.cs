@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using Assignment4WC.Models.ControllerEndpoints;
 using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 
 namespace Assignment4WC.Models.ResultType
@@ -20,19 +21,19 @@ namespace Assignment4WC.Models.ResultType
             _linkRef = new LinkReferencer();
         }
 
-        public ResultValue<T> AddLink(string content)
+        public ResultValue<T> AddLink(HateoasString content)
         {
             _linkRef.AddLink(content);
             return this;
         }
 
-        public ResultValue<T> AddLink(string key, string content)
+        public ResultValue<T> AddLink(string key, HateoasString content)
         {
              _linkRef.AddLink(key, content);
              return this;
         }
 
-        public Dictionary<string, string> GetLinks() => _linkRef.GetLinks();
+        public Dictionary<string, HateoasString> GetLinks() => _linkRef.GetLinks();
 
         public static implicit operator T(ResultValue<T> resultVal) => resultVal.Value;
         public static explicit operator ResultValue<T>(T val) => new(val!);

@@ -18,6 +18,6 @@ namespace Assignment4WC.Logic
         Result EndGame(string username);
         Result<int> GetUserScore(string username);
         Result<List<UserScore>> GetHighScores();
-        Result<bool> SubmitPictureAnswer(string username, IFormFile picture);
+        Result<bool> SubmitPictureAnswer(string username, IFormFile picture, bool passQuestion);
     }
 }

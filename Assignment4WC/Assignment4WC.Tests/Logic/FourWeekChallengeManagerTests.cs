@@ -44,7 +44,7 @@ namespace Assignment4WC.Tests.Logic
                         .Select(category => new CategoryWithQuestionCount(
                             category.ToString(),
                             GetQuestionCountInIncrements(questionCount, 5)))
-                        .ToList()).AddLink(FourWeekChallengeEndpoint.StartRoute);
+                        .ToList()).AddLink(FourWeekChallengeEndpoint.StartRouteHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetCategoriesAndQuestionCount()
@@ -81,7 +81,7 @@ namespace Assignment4WC.Tests.Logic
 
                 var expectedValue = new Result(new ErrorMessage(HttpStatusCode.NotFound,
                     $"Member with username '{username}' does not exist."))
-                    .AddLink(FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink(FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .UpdateUserLocation(username, latitude, longitude)
@@ -184,7 +184,7 @@ namespace Assignment4WC.Tests.Logic
 
                 var expectedValue = new Result(new ErrorMessage(HttpStatusCode.NotFound,
                         $"Member with username '{username}' does not exist."))
-                    .AddLink(FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink(FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetHintFromQuestion(username)
@@ -447,7 +447,7 @@ namespace Assignment4WC.Tests.Logic
 
                 var expectedValue = new Result(new ErrorMessage(HttpStatusCode.NotFound,
                         $"Member with username '{username}' does not exist."))
-                    .AddLink(FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink(FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetCurrentQuestionData(username)
@@ -596,7 +596,7 @@ namespace Assignment4WC.Tests.Logic
 
                 var expectedValue = new Result(new ErrorMessage(HttpStatusCode.NotFound,
                         $"Member with username '{username}' does not exist."))
-                    .AddLink(FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink(FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetLocationHintFromQuestion(username)
@@ -743,7 +743,7 @@ namespace Assignment4WC.Tests.Logic
 
                 var expectedValue = new Result(new ErrorMessage(HttpStatusCode.NotFound,
                         $"Member with username '{username}' does not exist."))
-                    .AddLink(FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink(FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .EndGame(username)
@@ -803,7 +803,7 @@ namespace Assignment4WC.Tests.Logic
 
                 var expectedValue = new Result<int>(new ErrorMessage(HttpStatusCode.NotFound,
                         $"Member with username '{username}' does not exist."))
-                    .AddLink(FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink(FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetUserScore(username)
@@ -820,8 +820,8 @@ namespace Assignment4WC.Tests.Logic
                 SetupMockGetMemberOrNull(repositoryMock, fakeMember.Username, fakeMember);
 
                 var expectedValue = new Result<int>(fakeMember.UserScore)
-                    .AddLink("category", FourWeekChallengeEndpoint.GetCategories)
-                    .AddLink("highScore", FourWeekChallengeEndpoint.GetHighScoresRoute);
+                    .AddLink("category", FourWeekChallengeEndpoint.GetCategoriesHateoas)
+                    .AddLink("highScore", FourWeekChallengeEndpoint.GetHighScoresRouteHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetUserScore(fakeMember.Username)
@@ -840,7 +840,7 @@ namespace Assignment4WC.Tests.Logic
 
                 var expectedValue = new Result<List<UserScore>>(
                         new ErrorMessage(HttpStatusCode.BadRequest, "No members currently exist."))
-                    .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink("categories", FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetHighScores()
@@ -859,7 +859,7 @@ namespace Assignment4WC.Tests.Logic
                 SetupMockGetUserScoreInDescendingOrder(repositoryMock, userScores);
 
                 var expectedValue = new Result<List<UserScore>>(userScores)
-                    .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink("categories", FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .GetHighScores()
@@ -964,7 +964,7 @@ namespace Assignment4WC.Tests.Logic
 
                 var expectedValue = new Result(new ErrorMessage(HttpStatusCode.NotFound,
                         $"Member with username '{username}' does not exist."))
-                    .AddLink(FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink(FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
                 new FourWeekChallengeManager(repositoryMock.Object, new Mock<IQuestionRandomiser>().Object)
                     .SubmitAnswer(username, answer)
@@ -1192,7 +1192,6 @@ namespace Assignment4WC.Tests.Logic
                 string username, string answer)
             {
                 var repositoryMock = new Mock<IGlobalRepository>(MockBehavior.Strict);
-
 
                 var fakeUserLocation = CreateFakeLocation();
 

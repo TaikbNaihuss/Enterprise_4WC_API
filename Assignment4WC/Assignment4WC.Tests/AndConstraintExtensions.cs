@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Assignment4WC.Models.ControllerEndpoints;
 using Assignment4WC.Models.ResultType;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -137,7 +138,7 @@ namespace Assignment4WC.Tests
 
 
 
-        private static string GetKeyAndValues(Dictionary<string, string> links)
+        private static string GetKeyAndValues(Dictionary<string, HateoasString> links)
         {
             return "{" + string.Join(Environment.NewLine, links.Select(kv => $"Key: {kv.Key},     Value: {kv.Value}").ToArray()) + "}";
         }

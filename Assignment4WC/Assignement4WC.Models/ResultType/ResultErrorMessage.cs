@@ -1,5 +1,6 @@
 ﻿using Assignment4WC.Models.ResultType.LinkReferencerObjects;
 using System.Collections.Generic;
+using Assignment4WC.Models.ControllerEndpoints;
 
 namespace Assignment4WC.Models.ResultType
 {
@@ -13,18 +14,18 @@ namespace Assignment4WC.Models.ResultType
             _linkRef = new LinkReferencer();
         }
 
-        public ResultErrorMessage AddLink(string content)
+        public ResultErrorMessage AddLink(HateoasString content)
         {
             _linkRef.AddLink(content);
             return this;
         }
 
-        public ResultErrorMessage AddLink(string key, string content)
+        public ResultErrorMessage AddLink(string key, HateoasString content)
         {
             _linkRef.AddLink(key, content);
             return this;
         }
 
-        public Dictionary<string, string> GetLinks() => _linkRef.GetLinks();
+        public Dictionary<string, HateoasString> GetLinks() => _linkRef.GetLinks();
     }
 }

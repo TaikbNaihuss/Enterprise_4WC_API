@@ -509,9 +509,9 @@ namespace Assignment4WC.Tests.API
                     .EndGame(username)
                     .Should().BeOkObjectResult()
                     .WithValueEquivalentTo(new LinkReferencer()
-                        .AddLink("categories", FourWeekChallengeEndpoint.GetCategories)
+                        .AddLink("categories", FourWeekChallengeEndpoint.GetCategoriesHateoas)
                         .AddLink("score", FourWeekChallengeEndpoint.GetUserScoreRouteWith(username))
-                        .AddLink("highScores", FourWeekChallengeEndpoint.GetHighScoresRoute)
+                        .AddLink("highScores", FourWeekChallengeEndpoint.GetHighScoresRouteHateoas)
                         .GetLinks());
             }
 

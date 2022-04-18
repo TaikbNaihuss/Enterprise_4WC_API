@@ -1,23 +1,24 @@
 ﻿using System.Collections.Generic;
+using Assignment4WC.Models.ControllerEndpoints;
 
 namespace Assignment4WC.Models.ResultType.LinkReferencerObjects
 {
     public class LinkReferencer : ILinkReferencer
     {
-        protected readonly Dictionary<string, string> _links;
+        protected readonly Dictionary<string, HateoasString> _links;
 
         public LinkReferencer()
         {
-            _links = new Dictionary<string, string>();
+            _links = new Dictionary<string, HateoasString>();
         }
 
-        public LinkReferencer AddLink(string content)
+        public LinkReferencer AddLink(HateoasString content)
         {
             _links.Add("href", content);
             return this;
         }
 
-        public LinkReferencer AddLink(string key, string content)
+        public LinkReferencer AddLink(string key, HateoasString content)
         {
             _links.Add(key, content);
             return this;

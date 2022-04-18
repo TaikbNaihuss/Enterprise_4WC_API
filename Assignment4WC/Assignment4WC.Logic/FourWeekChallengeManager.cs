@@ -38,7 +38,7 @@ namespace Assignment4WC.Logic
                             category.ToString(),
                             GetQuestionCountInIncrements(category, QuestionCountIncrements)))
                         .ToList())
-                .AddLink(FourWeekChallengeEndpoint.StartRoute);
+                .AddLink(FourWeekChallengeEndpoint.StartRouteHateoas);
 
 
         public Result UpdateUserLocation(string username, decimal latitude, decimal longitude)
@@ -205,8 +205,8 @@ namespace Assignment4WC.Logic
             //If they don't then return an error with appropriate link(s).
             return member != null ? 
                 new Result<int>(member.UserScore) 
-                    .AddLink("category", FourWeekChallengeEndpoint.GetCategories)
-                    .AddLink("highScore", FourWeekChallengeEndpoint.GetHighScoresRoute)
+                    .AddLink("category", FourWeekChallengeEndpoint.GetCategoriesHateoas)
+                    .AddLink("highScore", FourWeekChallengeEndpoint.GetHighScoresRouteHateoas)
                 : GetMemberDoesNotExistError(username)
                     .ToResult<int>();
         }
@@ -217,16 +217,19 @@ namespace Assignment4WC.Logic
             if (!_repository.Members.Any())
                 return new Result<List<UserScore>>(
                         new ErrorMessage(HttpStatusCode.BadRequest, "No members currently exist."))
-                    .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
+                    .AddLink("categories", FourWeekChallengeEndpoint.GetCategoriesHateoas);
             
             //Return all the high scores in descending order (starting from the highest scores to the lowest)
             //and along with that value, send back appropriate link(s).
             return new Result<List<UserScore>>(_repository.Members.GetUserScoreInDescendingOrder())
-                .AddLink("categories", FourWeekChallengeEndpoint.GetCategories);
+                .AddLink("categories", FourWeekChallengeEndpoint.GetCategoriesHateoas);
         }
 
-        public Result<bool> SubmitPictureAnswer(string username, IFormFile picture)
+        public Result<bool> SubmitPictureAnswer(string username, IFormFile picture, bool passQuestion)
         {
+            //Instead of repeating code, If the user chose to pass the question the question will be passed.
+            if (passQuestion) return SubmitAnswer(username,"PASS");
+
             //Get the pictures filename, split it at the period. Convert it to a list so the "Last()"
             //function can be used to get the last occurrence of that period (which implies its an extension).
             //Given the extension isn't an accepted extenstion, return an error with appropriate link(s).
@@ -459,7 +462,7 @@ namespace Assignment4WC.Logic
         private static Result GetMemberDoesNotExistError(string username) =>
             new Result(new ErrorMessage(HttpStatusCode.NotFound,
                     $"Member with username '{username}' does not exist."))
-                .AddLink(FourWeekChallengeEndpoint.GetCategories);
+                .AddLink(FourWeekChallengeEndpoint.GetCategoriesHateoas);
 
         //Used to determine whether a game has ended if the length of the collection of question Id's 
         //is the same as their current question number, A.K.A the index of their current question.

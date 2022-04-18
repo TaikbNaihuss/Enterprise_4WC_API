@@ -12,7 +12,7 @@ using System;
 namespace Assignment4WC.API.Controllers
 {
     [ApiController]
-    [Route("[controller]/api")]
+    [Route("api/[controller]")]
     public class FourWeekChallengeController : Controller
     {
         private readonly IFourWeekChallengeManager _manager;
@@ -22,7 +22,7 @@ namespace Assignment4WC.API.Controllers
             _manager = manager ?? throw new ArgumentNullException(nameof(manager));
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route(FourWeekChallengeEndpoint.GetCategories)]
         public IActionResult GetCategories() => 
             _manager.GetCategoriesAndQuestionCount()
@@ -111,10 +111,10 @@ namespace Assignment4WC.API.Controllers
 
         [HttpPost]
         [Route(FourWeekChallengeEndpoint.SubmitPictureAnswerRoute)]
-        public IActionResult SubmitPictureAnswer(string username, IFormFile picture)
+        public IActionResult SubmitPictureAnswer(string username, IFormFile picture, bool passQuestion)
         {
             //Submits the users picture answer and return a result after the process is finished.
-            var result = _manager.SubmitPictureAnswer(username, picture);
+            var result = _manager.SubmitPictureAnswer(username, picture, passQuestion);
 
             //If the result is a success, give the value data, otherwise the error data.
             return result.IsSuccess ?
@@ -172,9 +172,9 @@ namespace Assignment4WC.API.Controllers
             //otherwise return the error and its links.
             return result.IsSuccess ?
                 Ok(new LinkReferencer()
-                        .AddLink("categories", FourWeekChallengeEndpoint.GetCategories)
+                        .AddLink("categories", FourWeekChallengeEndpoint.GetCategoriesHateoas)
                         .AddLink("score", FourWeekChallengeEndpoint.GetUserScoreRouteWith(username))
-                        .AddLink("highScores", FourWeekChallengeEndpoint.GetHighScoresRoute)
+                        .AddLink("highScores", FourWeekChallengeEndpoint.GetHighScoresRouteHateoas)
                         .GetLinks()):
                 result.GetErrorAndLinks().ToActionResult(this);
         }
